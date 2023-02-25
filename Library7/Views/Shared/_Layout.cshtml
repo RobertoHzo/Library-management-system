@@ -1,0 +1,96 @@
+﻿@using Microsoft.AspNetCore.Authentication
+@using System.Security.Claims
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - Library7</title>
+	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+	<link rel="stylesheet" href="~/Library7.styles.css" asp-append-version="true" />
+
+
+	<link rel="stylesheet" type="text/css" href="~/lib/DataTables/datatables.min.css" />
+	<link rel="stylesheet" type="text/css" href="~/lib/SweetAlert2/sweetalert2.min.css" />
+</head>
+<body>
+
+	<header>
+		<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+			<div class="container-fluid">
+				<a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Library7</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+						aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+					<ul class="navbar-nav flex-grow-1">
+						@if (User.Identity.IsAuthenticated)
+						{
+							var claimsIdentity = User.Identity as ClaimsIdentity;
+							var userRoleClaim = claimsIdentity.FindFirst(ClaimTypes.Role);
+
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+							</li>
+							if (userRoleClaim.Value == "Member")
+							{
+								<li class="nav-item">
+									<a class="nav-link text-dark" asp-area="" asp-controller="MemberActions" asp-action="Index">Member home</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link text-dark" asp-area="" asp-controller="MemberActions" asp-action="Loans">Loans</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link text-dark" asp-area="" asp-controller="MemberActions" asp-action="SavedBooks">Saved</a>
+								</li>
+							}
+							else
+							{
+								<li class="nav-item">
+									<a class="nav-link text-dark" asp-area="" asp-controller="Book" asp-action="Index">Books</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link text-dark" asp-area="" asp-controller="Section" asp-action="Index">Section</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link text-dark" asp-area="" asp-controller="Member" asp-action="Index">Member</a>
+								</li>
+								<li class="nav-item">
+									<a class="nav-link text-dark" asp-area="" asp-controller="Loan" asp-action="Index">Loan</a>
+								</li>							
+							}
+							<li class="nav-item">
+								<a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Logout</a>
+							</li>
+						}
+
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</header>
+	<div class="container">
+		<main role="main" class="pb-3">
+			@RenderBody()
+		</main>
+	</div>
+
+	<footer class="border-top footer text-muted">
+		<div class="container">
+			&copy; 2023 - Library7 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+		</div>
+	</footer>
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="~/js/site.js" asp-append-version="true"></script>
+	<script src="~/js/signalr/dist/browser/signalr.js"></script>
+
+
+	<script type="text/javascript" src="~/lib/DataTables/datatables.min.js"></script>
+	<script type="text/javascript" src="~/lib/SweetAlert2/sweetalert2.all.min.js"></script>
+	@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

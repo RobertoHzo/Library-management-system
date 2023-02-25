@@ -1,0 +1,23 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+<h2>Loans</h2>
+
+@foreach (var loan in ViewBag.Loans)
+{
+	<div class="card">
+		<div class="card-body">
+			<p>Id_Loan: @loan.Id_Loan</p>
+			<p>Id_Book: @loan.Id_Book</p>
+			<p>LoanDate: @loan.LoanDate</p>
+			<p>DueDate: @loan.DueDate</p>
+			<p>Finished: @loan.Finished</p>
+		</div>
+	</div>
+}
+
+
+

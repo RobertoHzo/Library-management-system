@@ -1,0 +1,18 @@
+﻿@using Microsoft.AspNetCore.Authentication
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome: @User.Identity.Name</h1>
+   
+            <p>User ID: @ViewBag.User</p>
+      
+</div>
+
+@section Scripts{
+    <script>
+        console.log('@ViewBag.User');
+    </script>
+}
