@@ -79,12 +79,14 @@
 					@if (item.Finished != true)
 					{
 						@*<form asp-action="FinishLoan">
-							| <input type="hidden" name="Id_Loan" value="@item.Id_Loan" />
-							<input type="submit" value="Finish" />
-						</form>*@
-					 <p> | </p><button class="btn" onclick="getFine(@item.Id_Loan)">Get fine</button>
+				| <input type="hidden" name="Id_Loan" value="@item.Id_Loan" />
+				<input type="submit" value="Finish" />
+				</form>*@
+						<p> | </p>
+
+						<button class="btn" onclick="getFine(@item.Id_Loan)">Get fine</button>
 					}
-					
+
 				</td>
 			</tr>
 		}
@@ -178,6 +180,26 @@
 				)
 				.catch(error => console.error(error));
 		}
+
+		//-------------
+		// Signal R
+		let connection = new signalR.HubConnectionBuilder().withUrl("/signalrhub", {
+			skipNegotiation: true,
+			transport: signalR.HttpTransportType.WebSockets
+		}).build();
+
+		connection.start()
+			.then(function () {
+				console.log('connection started');
+			})
+			.catch(error => {
+				console.error(error.message);
+			});
+
+		connection.on(("LoanModification"), function () {
+			console.log("success");
+		});
+
 
 
 	</script>

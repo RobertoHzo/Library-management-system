@@ -279,3 +279,11 @@ C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\runtimes\unix\lib
 C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Drawing.Common.dll
 C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\runtimes\win\lib\net6.0\System.Windows.Extensions.dll
+C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\Microsoft.AspNetCore.Connections.Abstractions.dll
+C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\Microsoft.AspNetCore.SignalR.Common.dll
+C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\Microsoft.Extensions.Features.dll
+C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\Microsoft.Extensions.Options.dll
+C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\Microsoft.Owin.dll
+C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\Owin.dll
+C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\Microsoft.AspNetCore.SignalR.Client.Core.dll
+C:\Users\r0ber\source\repos\Library7\Library7\bin\Debug\net7.0\Microsoft.AspNetCore.SignalR.Protocols.Json.dll

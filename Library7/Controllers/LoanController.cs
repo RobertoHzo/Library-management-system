@@ -1,34 +1,35 @@
 ﻿using Library7.Data;
+using Library7.Hubs;
 using Library7.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.CodeAnalysis.Differencing;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using static System.Net.Mime.MediaTypeNames;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Library7.Controllers
 {
 	[Authorize]
 	public class LoanController : Controller
 	{
-		private readonly Library7Context _context;
-		//private readonly DBContext1 ;
+		//private readonly SignalRHub _hubInstance;
 
-		public LoanController(Library7Context context)
+		private readonly Library7Context _context;
+		private readonly IHubContext<SignalRHub> _hubContext;
+
+
+		public LoanController(Library7Context context, IHubContext<SignalRHub> hubContext)
 		{
 			_context = context;
+			_hubContext = hubContext;
+
 		}
 
 		[HttpGet]
 		public async Task<IActionResult> Index()
 		{
-			ViewBag.Config = _context.LoanConfiguration.FirstOrDefault();
+			ViewBag.Config = await _context.LoanConfiguration.FirstOrDefaultAsync();
 			var loans = await (from a in _context.Loan select a).ToListAsync();
 			return View(loans);
 		}
@@ -37,16 +38,12 @@ namespace Library7.Controllers
 		public async Task<IActionResult> Details(int id)
 		{
 			if (id == null || _context.Loan == null)
-			{
 				return NotFound();
-			}
 
 			var loan = await _context.Loan
 				.FirstOrDefaultAsync(m => m.Id_Loan == id);
 			if (loan == null)
-			{
 				return NotFound();
-			}
 
 			return View(loan);
 		}
@@ -63,35 +60,25 @@ namespace Library7.Controllers
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Create([Bind("Id_Book,Id_Member,LoanDate,DueDate,Finished")] Loan loan)
+		public async Task<IActionResult> Create(
+			[Bind("Id_Book,Id_Member,LoanDate,DueDate,Finished")] Loan loan)
 		{
 			if (ModelState.IsValid)
 			{
 				_context.Add(loan);
 				await _context.SaveChangesAsync();
+				await LoanModConnection();
 				return RedirectToAction(nameof(Index));
 			}
 			return View(loan);
-
-			//if (ModelState.IsValid)
-			//{
-			//	if (!_context.Book.Find(loan.Id_Book).CanLoan())
-			//	{
-			//		return BadRequest("No hay suficientes copias disponibles para prestar este libro.");
-			//	}
-			//	_context.Loan.Add(loan);
-			//	_context.SaveChanges();
-			//}
-			//return View(loan);
 		}
 
 		[HttpGet]
 		public async Task<IActionResult> Edit(int? id)
 		{
 			if (id == null || _context.Loan == null)
-			{
 				return NotFound();
-			}
+
 			var members = await _context.Member.ToListAsync();
 			ViewBag.Members = new SelectList(members, "Id_Member", "Name");
 			var books = await _context.Book.ToListAsync();
@@ -99,34 +86,30 @@ namespace Library7.Controllers
 
 			var loan = await _context.Loan.FindAsync(id);
 			if (loan == null)
-			{
 				return NotFound();
-			}
+
 			return View(loan);
 		}
 
 		[HttpPost]
 		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Edit(int id, [Bind("Id_Loan,Id_Book,Id_Member,LoanDate,DueDate,Finished")] Loan loan)
+		public async Task<IActionResult> Edit(
+			int id, [Bind("Id_Loan,Id_Book,Id_Member,LoanDate,DueDate,Finished")] Loan loan)
 		{
+			// TODO
 			if (id != loan.Id_Loan)
-			{
 				return NotFound();
-			}
-
 			if (ModelState.IsValid)
 			{
 				try
 				{
 					_context.Update(loan);
-					await _context.SaveChangesAsync();
+					await LoanModConnection();
 				}
 				catch (DbUpdateConcurrencyException)
 				{
-					if (!LoanExists(loan.Id_Loan))
-					{
+					if (!await LoanExists(loan.Id_Loan))
 						return NotFound();
-					}
 					else
 					{
 						throw;
@@ -141,18 +124,14 @@ namespace Library7.Controllers
 		public async Task<IActionResult> Delete(int? id)
 		{
 			if (id == null || _context.Loan == null)
-			{
 				return NotFound();
-			}
 
-			var libro = await _context.Loan
+			var loan = await _context.Loan
 				.FirstOrDefaultAsync(m => m.Id_Loan == id);
-			if (libro == null)
-			{
+			if (loan == null)
 				return NotFound();
-			}
 
-			return View(libro);
+			return View(loan);
 		}
 
 		[HttpPost]
@@ -165,7 +144,7 @@ namespace Library7.Controllers
 			{
 				if (_context.Loan == null)
 				{
-					return Problem("Entity set 'Library3Context.Libro'  is null.");
+					return Problem("Null");
 				}
 				var libro = await _context.Loan.FindAsync(id);
 				if (libro != null)
@@ -173,10 +152,10 @@ namespace Library7.Controllers
 					_context.Loan.Remove(libro);
 				}
 				await _context.SaveChangesAsync();
+
+				await LoanModConnection();
 			}
-
 			return RedirectToAction(nameof(Index));
-
 		}
 
 		[HttpPost]
@@ -186,9 +165,10 @@ namespace Library7.Controllers
 			{
 				try
 				{
-
-					var data = await _context.Loan.Where(x => x.Id_Loan == floan.Id_Loan).FirstOrDefaultAsync();
-					var fa = GetFineAmount(data.Id_Loan, DateTime.Now, _context);
+					var data = await _context.Loan
+						.Where(x => x.Id_Loan == floan.Id_Loan)
+						.FirstOrDefaultAsync();
+					var fa = await GetFineAmount(data.Id_Loan, DateTime.Now, _context);
 					if (data != null)
 					{
 						data.ReturnDate = DateTime.Now;
@@ -199,7 +179,7 @@ namespace Library7.Controllers
 				}
 				catch (DbUpdateConcurrencyException)
 				{
-					if (!LoanExists(floan.Id_Loan))
+					if (!await LoanExists(floan.Id_Loan))
 					{
 						return NotFound();
 					}
@@ -214,39 +194,39 @@ namespace Library7.Controllers
 
 		public async Task<dynamic> ShowFineAmount(int Id_Loan)
 		{
-			//DateTime returnDate= DateTime.Parse(ReturnDate);
 			DateTime returnDate = DateTime.Now;
-			var fa = GetFineAmount(Id_Loan, returnDate,_context);
+			var fa = await GetFineAmount(Id_Loan, returnDate, _context);
 
-			List<FineDay> jsonObject= new List<FineDay> 
-			{ 
+			List<FineDay> jsonObject = new List<FineDay>
+			{
 				new FineDay{ Days = fa.Item2.ToString(), Fine = fa.Item1.ToString()}
 			};
 
 			return jsonObject;
 		}
-		public static (double?, int) GetFineAmount(int Id_Loan, DateTime ReturnDate, Library7Context _context)
+
+		public async Task<(double?, int)> GetFineAmount(int Id_Loan, DateTime ReturnDate, Library7Context _context)
 		{
 			int differenceInDays = 0;
-			var loanConfig = _context.LoanConfiguration.FirstOrDefault();
-			var loan = _context.Loan.Where(x => x.Id_Loan == Id_Loan).FirstOrDefault();
-			//DateTime returnDate = DateTime.Parse(ReturnDate);
+			var loanConfig = await _context.LoanConfiguration.FirstOrDefaultAsync();
+			var loan = _context.Loan
+				.Where(x => x.Id_Loan == Id_Loan).FirstOrDefault();
 			if (ReturnDate > DateTime.Now || ReturnDate < loan.DueDate)
 			{
 				return (0, 0);
 			}
-			
+
 			if (loanConfig.Weekends == true)
 			{
-				TimeSpan difference = ReturnDate.Date - loan.DueDate; // Get the difference in days
-				differenceInDays = difference.Days; // Get the difference in days as an integer
+				TimeSpan difference = ReturnDate.Date - loan.DueDate;
+				differenceInDays = difference.Days;
 			}
 			else
 			{
-				DateTime date1 = loan.DueDate; // The start date
-				DateTime date2 = ReturnDate.Date; // The end date
+				DateTime startDate = loan.DueDate;
+				DateTime endDate = ReturnDate.Date;
 				differenceInDays = 0;
-				for (DateTime date = date1; date <= date2; date = date.AddDays(1))
+				for (DateTime date = startDate; date <= endDate; date = date.AddDays(1))
 				{
 					if (date.DayOfWeek != DayOfWeek.Saturday && date.DayOfWeek != DayOfWeek.Sunday)
 					{
@@ -259,11 +239,13 @@ namespace Library7.Controllers
 		}
 
 
-		public ActionResult EditLoanConfig([Bind("Id,Weekends,FineAmount")] LoanConfiguration lc)
+		public async Task<ActionResult> EditLoanConfig(
+			[Bind("Id,Weekends,FineAmount")] LoanConfiguration lc)
 		{
 			if (ModelState.IsValid)
 			{
-				var data = _context.LoanConfiguration.Where(x => x.Id == lc.Id).FirstOrDefault();
+				var data = await _context.LoanConfiguration
+					.Where(x => x.Id == lc.Id).FirstOrDefaultAsync();
 				if (data != null)
 				{
 					if (lc.Weekends == true)
@@ -275,16 +257,19 @@ namespace Library7.Controllers
 						data.Weekends = false;
 					}
 					data.FineAmount = lc.FineAmount;
-					_context.SaveChanges();
+					await _context.SaveChangesAsync();
 				}
 			}
 			return RedirectToAction("Index");
 		}
 
-		private bool LoanExists(int id)
+		private async Task<bool> LoanExists(int id)
 		{
-			return (_context.Loan?.Any(e => e.Id_Loan == id)).GetValueOrDefault();
+			return await _context.Loan.AnyAsync(e => e.Id_Loan == id);
 		}
+
+		private async Task LoanModConnection() => 
+			await _hubContext.Clients.All.SendAsync("LoanModification");
 
 		#region objects
 		public class FinishLoanId

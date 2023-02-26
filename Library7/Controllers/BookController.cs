@@ -1,216 +1,229 @@
 ﻿using Library7.Data;
+using Library7.Hubs;
 using Library7.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Library7.Controllers
 {
-	[Authorize]
-	public class BookController : Controller
-	{
-		private readonly Library7Context _context;
-		//private readonly DBContext1 _dbContext;
+    [Authorize]
+    public class BookController : Controller
+    {
+        private readonly Library7Context _context;
+        //private readonly DBContext1 _dbContext;
+        private readonly IHubContext<SignalRHub> _hubContext;
 
-		public BookController(Library7Context context)
-		{
-			_context = context;
-			//_dbContext = dbContext;
-		}
-		// GET: BookController
-		public async Task<IActionResult> Index()
-		{
-			return _context.Book != null ?
-						  View(await _context.Book
-						  .OrderBy(x => x.Group_Id)
-						  .ThenBy(x => x.Title)
-						  .ToListAsync()) :
-						  Problem("Entity set 'Library7Context.Libro'  is null.");
-		}
+        public BookController(Library7Context context, IHubContext<SignalRHub> hubContext)
+        {
+            _context = context;
+            _hubContext = hubContext;
 
-		// GET: BookController/Details/5
-		public async Task<IActionResult> Details(int? id)
-		{
-			if (id == null || _context.Book == null)
-			{
-				return NotFound();
-			}
+            //_dbContext = dbContext;
+        }
+        // GET: BookController
+        public async Task<IActionResult> Index()
+        {
+            return _context.Book != null ?
+                          View(await _context.Book
+                          .OrderBy(x => x.Group_Id)
+                          .ThenBy(x => x.Title)
+                          .ToListAsync()) :
+                          Problem("Entity set 'Library7Context.Libro'  is null.");
+        }
 
-			var book = await _context.Book
-				.FirstOrDefaultAsync(m => m.Id_Book == id);
-			if (book == null)
-			{
-				return NotFound();
-			}
+        // GET: BookController/Details/5
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null || _context.Book == null)
+            {
+                return NotFound();
+            }
 
-			return View(book);
-		}
+            var book = await _context.Book
+                .FirstOrDefaultAsync(m => m.Id_Book == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
 
-		// GET: BookController/Create
-		[HttpGet]
-		public async Task<IActionResult> Create()
-		{
-			var sections = await _context.Section.ToListAsync();
-			ViewBag.Sections = new SelectList(sections, "Id_Section", "Name");
+            return View(book);
+        }
 
-			return View();
-		}
+        // GET: BookController/Create
+        [HttpGet]
+        public async Task<IActionResult> Create()
+        {
+            var sections = await _context.Section.ToListAsync();
+            ViewBag.Sections = new SelectList(sections, "Id_Section", "Name");
 
-		// POST: BookController/Create
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Create([Bind("Group_Id,ISBN,Title,Author,Id_Section,Image")] Book book)
-		{
-			var MaxGroupId = _context.Book.Max(x => x.Group_Id);
+            return View();
+        }
 
-			if (ModelState.IsValid)
-			{
-				if (book.Group_Id > 0)
-				{
-					_context.Add(book);
-				}
-				else
-				{
-					book.Group_Id = MaxGroupId + 1;
-					_context.Add(book);
-				}
-				await _context.SaveChangesAsync();
-				return RedirectToAction(nameof(Index));
-			}
-			return View(book);
-		}
+        // POST: BookController/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([Bind("Group_Id,ISBN,Title,Author,Id_Section,Image")] Book book)
+        {
+            var MaxGroupId = _context.Book.Max(x => x.Group_Id);
 
-		[HttpGet]
-		public async Task<IActionResult> CreateCopy(int id)
-		{
-			if (id == null || _context.Book == null)
-			{
-				return NotFound();
-			}
+            if (ModelState.IsValid)
+            {
+                if (book.Group_Id > 0)
+                {
+                    _context.Add(book);
+                }
+                else
+                {
+                    book.Group_Id = MaxGroupId + 1;
+                    _context.Add(book);
+                }
+                await _context.SaveChangesAsync();
+                await BookModConnection();
 
-			var book = await _context.Book.Where(x => x.Id_Book == id).FirstOrDefaultAsync();
-			if (book == null)
-			{
-				return NotFound();
-			}
-			return View(book);
-		}
+                return RedirectToAction(nameof(Index));
+            }
+            return View(book);
+        }
 
-		// GET: BookController/Edit/5
-		[HttpGet]
-		public async Task<IActionResult> Edit(int id, int option)
-		{
-			if (id == null || _context.Book == null)
-			{
-				return NotFound();
-			}
+        [HttpGet]
+        public async Task<IActionResult> CreateCopy(int id)
+        {
+            if (id == null || _context.Book == null)
+            {
+                return NotFound();
+            }
 
-			var sections = await _context.Section.ToListAsync();
-			ViewBag.Sections = new SelectList(sections, "Id_Section", "Name");
+            var book = await _context.Book.Where(x => x.Id_Book == id).FirstOrDefaultAsync();
+            if (book == null)
+            {
+                return NotFound();
+            }
+            return View(book);
+        }
 
-			var book = await _context.Book.FindAsync(id);
-			if (book == null)
-			{
-				return NotFound();
-			}
-			ViewBag.Option = option;
-			return View(book);
-		}
+        // GET: BookController/Edit/5
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id, int option)
+        {
+            if (id == null || _context.Book == null)
+            {
+                return NotFound();
+            }
 
-		// POST: BookController/Edit/5
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> Edit([Bind("Id_Book,ISBN,Title,Author,Id_Section,Image")] Book book)
-		{
+            var sections = await _context.Section.ToListAsync();
+            ViewBag.Sections = new SelectList(sections, "Id_Section", "Name");
 
-			try
-			{
-				if (book.ISBN == null)
-				{
-					var groupId = await _context.Book
-						.Where(x => x.Id_Book == book.Id_Book)
-						.Select(y => y.Group_Id)
-						.FirstOrDefaultAsync();
+            var book = await _context.Book.FindAsync(id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+            ViewBag.Option = option;
+            return View(book);
+        }
 
-					var recordsToEdit = _context.Book.Where(x => x.Group_Id == groupId);
+        // POST: BookController/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit([Bind("Id_Book,ISBN,Title,Author,Id_Section,Image")] Book book)
+        {
 
-					foreach (var record in recordsToEdit)
-					{
-						record.Author = book.Author;
-						record.Title = book.Title;
-						record.Id_Section = book.Id_Section;
-						record.Image = book.Image;
-					}
-				}
-				else
-				{
-					var record = await _context.Book.FirstOrDefaultAsync(x => x.Id_Book == book.Id_Book);
-					record.ISBN = book.ISBN;
-				}
-				await _context.SaveChangesAsync();
-			}
-			catch (DbUpdateConcurrencyException)
-			{
-				if (!BookExists(book.Id_Book))
-				{
-					return NotFound();
-				}
-				else
-				{
-					throw;
-				}
-			}
-			return RedirectToAction(nameof(Index));
-		}
+            try
+            {
+                if (book.ISBN == null)
+                {
+                    var groupId = await _context.Book
+                        .Where(x => x.Id_Book == book.Id_Book)
+                        .Select(y => y.Group_Id)
+                        .FirstOrDefaultAsync();
 
-		// GET: BookController/Delete/5
-		public async Task<IActionResult> Delete(int? id)
-		{
-			if (id == null || _context.Book == null)
-			{
-				return NotFound();
-			}
+                    var recordsToEdit = _context.Book.Where(x => x.Group_Id == groupId);
 
-			var libro = await _context.Book
-				.FirstOrDefaultAsync(m => m.Id_Book == id);
-			if (libro == null)
-			{
-				return NotFound();
-			}
+                    foreach (var record in recordsToEdit)
+                    {
+                        record.Author = book.Author;
+                        record.Title = book.Title;
+                        record.Id_Section = book.Id_Section;
+                        record.Image = book.Image;
+                    }
+                }
+                else
+                {
+                    var record = await _context.Book.FirstOrDefaultAsync(x => x.Id_Book == book.Id_Book);
+                    record.ISBN = book.ISBN;
+                }
+                await _context.SaveChangesAsync();
+                await BookModConnection();
 
-			return View(libro);
-		}
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!BookExists(book.Id_Book))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            return RedirectToAction(nameof(Index));
+        }
 
-		// POST: BookController/Delete/5
-		[HttpPost]
-		[ValidateAntiForgeryToken]
-		public async Task<IActionResult> DeleteConfirmed()
-		{
-			string? formInput = Request.Form["Id_Book"];
-			int? id = int.Parse(formInput);
-			if (id != null)
-			{
-				if (_context.Book == null)
-				{
-					return Problem("Entity set 'Library3Context.Libro'  is null.");
-				}
-				var libro = await _context.Book.FindAsync(id);
-				if (libro != null)
-				{
-					_context.Book.Remove(libro);
-				}
+        // GET: BookController/Delete/5
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null || _context.Book == null)
+            {
+                return NotFound();
+            }
 
-				await _context.SaveChangesAsync();
-			}
-			return RedirectToAction(nameof(Index));
-		}
+            var libro = await _context.Book
+                .FirstOrDefaultAsync(m => m.Id_Book == id);
+            if (libro == null)
+            {
+                return NotFound();
+            }
 
-		private bool BookExists(int id)
-		{
-			return (_context.Book?.Any(e => e.Id_Book == id)).GetValueOrDefault();
-		}
-	}
+            return View(libro);
+        }
+
+        // POST: BookController/Delete/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed()
+        {
+            string? formInput = Request.Form["Id_Book"];
+            int? id = int.Parse(formInput);
+            if (id != null)
+            {
+                if (_context.Book == null)
+                {
+                    return Problem("Entity set 'Library3Context.Libro'  is null.");
+                }
+                var libro = await _context.Book.FindAsync(id);
+                if (libro != null)
+                {
+                    _context.Book.Remove(libro);
+                }
+
+                await _context.SaveChangesAsync();
+                await BookModConnection();
+
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        private bool BookExists(int id)
+        {
+            return (_context.Book?.Any(e => e.Id_Book == id)).GetValueOrDefault();
+        }
+        private async Task BookModConnection() =>
+            await _hubContext.Clients.All.SendAsync("BookModConnection");
+    }
 }

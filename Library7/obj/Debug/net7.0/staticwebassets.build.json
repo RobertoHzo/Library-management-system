@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "iXSBul7ZDRpfU4AvifdD1NrcKOM6N99Tr4nheOh8JYs=",
+  "Hash": "uH0h0juzNVVvN9S26IKxK/ZS95Ua/eDqsReMVVwAfiU=",
   "Source": "Library7",
   "BasePath": "_content/Library7",
   "Mode": "Default",
@@ -83,6 +83,40 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\js\\signalr\\signalr.js",
+      "SourceId": "Library7",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\",
+      "BasePath": "_content/Library7",
+      "RelativePath": "js/signalr/signalr.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\signalr\\signalr.js"
+    },
+    {
+      "Identity": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\js\\signalr\\signalr.min.js",
+      "SourceId": "Library7",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\",
+      "BasePath": "_content/Library7",
+      "RelativePath": "js/signalr/signalr.min.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\signalr\\signalr.min.js"
     },
     {
       "Identity": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\js\\site.js",
