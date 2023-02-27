@@ -1,24 +1,27 @@
 ﻿using Library7.Data;
+using Library7.Hubs;
 using Library7.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library7.Controllers
 {
-	[Authorize]
-	public class SectionController : Controller
+    [Authorize]
+    public class SectionController : Controller
     {
         private readonly Library7Context _context;
-        //private readonly DBContext1 ;
+        private readonly IHubContext<SignalRHub> _hubContext;
 
-        public SectionController(Library7Context context)
+        public SectionController(Library7Context context, IHubContext<SignalRHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
-        // GET: SectionController
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
             return _context.Section != null ?
@@ -26,70 +29,60 @@ namespace Library7.Controllers
                          Problem("Entity set 'Library7Context.Libro'  is null.");
         }
 
-
-        // GET: SectionController/Details/5
-        public async Task<IActionResult> Details(int? id)
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
         {
-            if (id == null || _context.Section == null)
-            {
+            if (id <= 0)
                 return NotFound();
-            }
 
-            var section = await _context.Section
-                .FirstOrDefaultAsync(m => m.Id_Section == id);
+            var section = await _context.Section.FindAsync(id);
             if (section == null)
-            {
                 return NotFound();
-            }
 
             return View(section);
         }
 
-        // GET: SectionController/Create
+        [HttpGet]
         public ActionResult Create()
         {
             return View();
         }
 
-        // POST: SectionController/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name")] Section section)
+        public async Task<IActionResult> Create(
+            [Bind("Name")] Section section)
         {
             if (ModelState.IsValid)
             {
                 _context.Add(section);
                 await _context.SaveChangesAsync();
+                await SectionModConnection();
                 return RedirectToAction(nameof(Index));
             }
             return View(section);
         }
 
-        // GET: SectionController/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
         {
-            if (id == null || _context.Section == null)
-            {
+            if (id <= 0)
                 return NotFound();
-            }
 
             var section = await _context.Section.FindAsync(id);
             if (section == null)
-            {
                 return NotFound();
-            }
+
             return View(section);
         }
 
-        // POST: SectionController/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id_Section,Name")] Section section)
+        public async Task<IActionResult> Edit(
+            int id, [Bind("Id_Section,Name")] Section section)
         {
-            if (id != section.Id_Section)
-            {
-                return NotFound();
-            }
+            if (id != section.Id_Section)            
+                return NotFound();            
 
             if (ModelState.IsValid)
             {
@@ -97,59 +90,46 @@ namespace Library7.Controllers
                 {
                     _context.Update(section);
                     await _context.SaveChangesAsync();
+                    await SectionModConnection();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!BookExists(section.Id_Section))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!BookExists(section.Id_Section))                    
+                        return NotFound();                    
+                    else                    
+                        throw;                    
                 }
                 return RedirectToAction(nameof(Index));
             }
             return View(section);
         }
 
-        // GET: SectionController/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        [HttpGet]
+        public async Task<IActionResult> Delete(int id)
         {
-            if (id == null || _context.Section == null)
-            {
+            if (id <= 0)            
                 return NotFound();
-            }
 
-            var section = await _context.Section
-                .FirstOrDefaultAsync(m => m.Id_Section == id);
-            if (section == null)
-            {
-                return NotFound();
-            }
+            var section = await _context.Section.FindAsync(id);
+            if (section == null)            
+                return NotFound();            
 
             return View(section);
         }
 
-        // POST: SectionController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed()
+        public async Task<IActionResult> DeleteConfirmed([Bind("Id_Section")]Section sec)
         {
-            string? formInput = Request.Form["Id_Section"];
-            int? id = int.Parse(formInput);
-            if (id != null)
+            int id = sec.Id_Section;
+            if (id <= 0)
             {
-                if (_context.Section == null)
-                {
-                    return Problem("Entity set 'Library3Context.Libro'  is null.");
-                }
                 var section = await _context.Section.FindAsync(id);
                 if (section != null)
                 {
                     _context.Section.Remove(section);
                     await _context.SaveChangesAsync();
+                    await SectionModConnection();
                 }
             }
             return RedirectToAction(nameof(Index));
@@ -159,5 +139,9 @@ namespace Library7.Controllers
         {
             return (_context.Section?.Any(e => e.Id_Section == id)).GetValueOrDefault();
         }
+
+        // signalR
+        private async Task SectionModConnection() =>
+            await _hubContext.Clients.All.SendAsync("SectionModConnection");
     }
 }
