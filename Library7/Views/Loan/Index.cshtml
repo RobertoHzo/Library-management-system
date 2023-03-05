@@ -16,79 +16,34 @@
 	<thead>
 		<tr>
 			<th>
-				@Html.DisplayNameFor(model => model.Id_Loan)
+				Id_Loan
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.Id_Book)
+				Id_Book
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.Id_Member)
+				Id_Member
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.LoanDate)
+				LoanDate
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.DueDate)
+				DueDate
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.ReturnDate)
+				ReturnDate
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.Fine)
+				Fine
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.Finished)
+				Finished
 			</th>
 
 			<th></th>
 		</tr>
 	</thead>
-	<tbody>
-		@foreach (var item in Model)
-		{
-			<tr>
-				<td>
-					@Html.DisplayFor(modelItem => item.Id_Loan)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Id_Book)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Id_Member)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.LoanDate)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.DueDate)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.ReturnDate)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Fine)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Finished)
-				</td>
-
-				<td>
-					<a asp-action="Edit" asp-route-id="@item.Id_Loan">Edit</a> |
-					<a asp-action="Details" asp-route-id="@item.Id_Loan">Details</a>
-					@*<a asp-action="Delete" asp-route-id="@item.Id_Loan">Delete</a>*@
-					@if (item.Finished != true)
-					{
-						@*<form asp-action="FinishLoan">
-							| <input type="hidden" name="Id_Loan" value="@item.Id_Loan" />
-							<input type="submit" value="Finish" />
-						</form>*@
-					 <p> | </p><button class="btn" onclick="getFine(@item.Id_Loan)">Get fine</button>
-					}
-					
-				</td>
-			</tr>
-		}
-	</tbody>
+	
 </table>
 
 <!-- Modal -->
@@ -120,6 +75,46 @@
 
 @section Scripts{
 	<script>
+		var table = $('#IndxTbl').DataTable({
+			ajax: {
+				url: '@Url.Action("GetAll", "Loan")',
+				dataSrc: '',
+			},
+			columns: [
+				{ data: "id_Loan", autoWidth: true },
+				{ data: "id_Book", autoWidth: true },
+				{ data: "id_Member", autoWidth: true },
+				{ data: "loanDate", autoWidth: true },
+				{ data: "dueDate", autoWidth: true },
+				{ data: "returnDate", autoWidth: true },
+				{ data: "fine", autoWidth: true },
+				{ data: "finished", autoWidth: true },
+				{
+					data: "id_Loan",
+					render: function (data,type,row) {
+						var buttons = ``;
+						if (!row.finished) {
+							buttons += `<a class="btn btn-secondary" href="/Loan/Edit/${data}">Edit</a>
+									<a class="btn btn-info" href="/Loan/Details/${data}">Details</a>
+									<button class="btn-warning btn" onclick="getFine(${data})">Finish</button>`;
+						}else{
+							buttons += `<a class="btn btn-info" href="/Loan/Details/${data}">Details</a>`;
+						}
+						return buttons;
+					},
+					autoWidth: true
+				}
+			],
+			dom: 'Bfrtip',
+			buttons: [
+				'copy', 'excel', 'pdf'
+			]
+		});
+
+		table.buttons().container()
+			.appendTo($('.col-sm-6:eq(0)', table.table().container()));
+
+		//---- Modal Loan configuration -----------------
 		var WEvalue = ("@ViewBag.Config.Weekends").toLowerCase();
 		var checkbox = document.getElementById("InputWeekends");
 
@@ -179,6 +174,42 @@
 				.catch(error => console.error(error));
 		}
 
+		//-------------
+		// Signal R
+		let connection = new signalR.HubConnectionBuilder().withUrl("/signalrhub", {
+			skipNegotiation: true,
+			transport: signalR.HttpTransportType.WebSockets
+		}).build();
 
+		connection.start()
+			.then(function () {
+				console.log('connection started');
+			})
+			.catch(error => {
+				console.error(error.message);
+			});
+
+		connection.on(("LoanModConnection"), function () {
+			table.ajax.reload();
+			toastr.options = {
+				"closeButton": true,
+				"debug": false,
+				"newestOnTop": true,
+				"progressBar": true,
+				"positionClass": "toast-bottom-right",
+				"preventDuplicates": false,
+				"onclick": null,
+				"showDuration": "300",
+				"hideDuration": "1000",
+				"timeOut": "10000",
+				"extendedTimeOut": "5000",
+				"showEasing": "swing",
+				"hideEasing": "linear",
+				"showMethod": "fadeIn",
+				"hideMethod": "fadeOut"
+			}
+			toastr["info"]("", "New changes have been made");
+			console.log("New changes have been made");
+		});
 	</script>
 }

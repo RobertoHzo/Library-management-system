@@ -1,164 +1,131 @@
 ﻿using Library7.Data;
+using Library7.Hubs;
 using Library7.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library7.Controllers
 {
-	[Authorize]
-	public class MemberController : Controller
+    [Authorize]
+    public class MemberController : Controller
     {
         private readonly Library7Context _context;
-        //private readonly DBContext1 ;
+        private readonly IHubContext<SignalRHub> _hubContext;
 
-        public MemberController(Library7Context context)
+        public MemberController(Library7Context context, IHubContext<SignalRHub> hubContext)
         {
             _context = context;
+            _hubContext = hubContext;
         }
 
-        // GET: MemberController
-        public async Task<IActionResult> Index()
+		#region Views
+		[HttpGet]
+        public ActionResult Index()
         {
-            return _context.Member != null ?
-                         View(await _context.Member.ToListAsync()) :
-                         Problem("Entity set 'Library7Context.Libro'  is null.");
+           return View();
         }
 
-
-        // GET: MemberController/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null || _context.Member == null)
-            {
-                return NotFound();
-            }
-
-            var member = await _context.Member
-                .FirstOrDefaultAsync(m => m.Id_Member == id);
-            if (member == null)
-            {
-                return NotFound();
-            }
-
-            return View(member);
-        }
-
-        // GET: MemberController/Create
-        public ActionResult Create()
+        [HttpGet]
+        public IActionResult Create()
         {
             return View();
         }
 
-        // POST: MemberController/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Lastname,Email,Password,City,Address,Zip,Phone")] Member member)
+        [HttpGet]
+        public async Task<ActionResult> Details(int id)
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(member);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(member);
-        }
-
-        // GET: MemberController/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null || _context.Member == null)
-            {
+            if (id <= 0)
                 return NotFound();
-            }
 
             var member = await _context.Member.FindAsync(id);
             if (member == null)
-            {
                 return NotFound();
-            }
+
             return View(member);
         }
 
-        // POST: MemberController/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id_Member,Name,Lastname,Email,Password,City,Address,Zip,Phone")] Member member)
+        [HttpGet]
+        public async Task<ActionResult> Edit(int id)
         {
-            if (id != member.Id_Member)
-            {
+            if (id <= 0)
                 return NotFound();
-            }
 
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(member);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!MemberExists(member.Id_Member))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(member);
-        }
-
-        // GET: MemberController/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Member == null)
-            {
-                return NotFound();
-            }
-
-            var member = await _context.Member
-                .FirstOrDefaultAsync(m => m.Id_Member == id);
+            var member = await _context.Member.FindAsync(id);
             if (member == null)
-            {
                 return NotFound();
-            }
 
             return View(member);
         }
 
-        // POST: MemberController/Delete/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed()
+        [HttpGet]
+        public async Task<ActionResult> Delete(int id)
         {
-            string? formInput = Request.Form["Id_Member"];
-            int? id = int.Parse(formInput);
-            if (id != null)
-            {
-                if (_context.Member == null)
-                {
-                    return Problem("Entity set 'Library3Context.Libro'  is null.");
-                }
-                var member = await _context.Member.FindAsync(id);
-                if (member != null)
-                {
-                    _context.Member.Remove(member);
-                }
+            if (id <= 0)
+                return NotFound();
 
-                await _context.SaveChangesAsync();
-            }
+            var member = await _context.Member.FindAsync(id);
+            if (member == null)
+                return NotFound();
+
+            return View(member);
+        }
+        #endregion
+
+        #region Actions
+        public async Task<IActionResult> Create(
+            [Bind("Name,Lastname,Email,Password,Phone,City,Address,Zip")] Member member)
+        {
+            if (!ModelState.IsValid)
+                return View(member);
+
+            _context.Add(member);
+            await _context.SaveChangesAsync();
+            await MemberModConnection();
             return RedirectToAction(nameof(Index));
 
         }
-        private bool MemberExists(int id)
+
+        [HttpPost]
+        public async Task<IActionResult> Edit(
+            [Bind("Id_Member,Name,Lastname,Email,Password,Phone,City,Address,Zip")] Member member)
         {
-            return (_context.Member?.Any(e => e.Id_Member == id)).GetValueOrDefault();
+            if (member.Id_Member <= 0 || !ModelState.IsValid)
+                return View(member);
+            _context.Add(member);
+            await _context.SaveChangesAsync();
+            await MemberModConnection();
+            return RedirectToAction(nameof(Index));
         }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteConfirmed([Bind("Id_Member")] Member member)
+        {
+            if (member.Id_Member <= 0)
+                return NotFound();
+
+            var res = await _context.Member.FindAsync(member.Id_Member);
+            if (res == null)
+                return NotFound();
+
+            _context.Member.Remove(res);
+            await _context.SaveChangesAsync();
+            await MemberModConnection();
+            return RedirectToAction(nameof(Index));
+        }
+        #endregion
+
+        public async Task<IActionResult> GetAll()
+        {
+            var members = await _context.Member.ToListAsync();
+			return Json(members);
+        }
+             
+
+        private async Task MemberModConnection() =>
+            await _hubContext.Clients.All.SendAsync("MemberModConnection");
     }
 }

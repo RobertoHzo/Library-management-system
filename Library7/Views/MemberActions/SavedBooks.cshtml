@@ -1,37 +1,41 @@
 ﻿@model IEnumerable<Library7.Models.SavedBook>
 
 @{
-    ViewData["Title"] = "Saved books";
+	ViewData["Title"] = "Saved books";
 }
 
 <h1>Saved books</h1>
 
 
 <table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Id_Book)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Id_Member)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Id_Book)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Id_Member)
-            </td>
-            <td>
-                <a asp-action="DeleteSavedBook" asp-route-id="@item.Id_SavedBook">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
+	<thead>
+		<tr>
+			<th>
+				@Html.DisplayNameFor(model => model.Id_Book)
+			</th>
+			<th>
+				@Html.DisplayNameFor(model => model.Id_Member)
+			</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>
+					@Html.DisplayFor(modelItem => item.Id_Book)
+				</td>
+				<td>
+					@Html.DisplayFor(modelItem => item.Id_Member)
+				</td>
+				<td>
+					<form asp-action="DeleteSavedBook">
+						<input name="Id_SavedBook" type="hidden" value="@item.Id_SavedBook">
+						<button type="submit" class="btn btn-outline-danger">Delete</button>
+					</form>
+				</td>
+			</tr>
+		}
+	</tbody>
 </table>

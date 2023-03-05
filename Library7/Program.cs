@@ -1,9 +1,12 @@
+using Owin;
+using Microsoft.Owin;
 using Library7.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Library7.Hubs;
-
-
+using Library7.Controllers;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Connections;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,8 +49,7 @@ app.UseAuthentication();
 //*
 app.UseAuthorization();
 
-app.MapHub<SignalRHub>("/signaRHub");
-
+app.MapHub<SignalRHub>("/signalrhub");
 
 app.MapControllerRoute(
     name: "default",

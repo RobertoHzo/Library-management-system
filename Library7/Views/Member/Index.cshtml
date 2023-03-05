@@ -13,73 +13,96 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Name)
+                Name
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Lastname)
+                Lastname
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Email)
+                Email
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Password)
+                Password
             </th>
             <th>
-
-                @Html.DisplayNameFor(model => model.City)
+                City
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Address)
+               Address
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Zip)
+                Zip
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Phone)
+                Phone
             </th>
             <th></th>
         </tr>
     </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                    @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                    @Html.DisplayFor(modelItem => item.Lastname)
-            </td>
-            <td>
-                    @Html.DisplayFor(modelItem => item.Email)
-            </td>
-            <td>
-                    @Html.DisplayFor(modelItem => item.Password)
-            </td>
-            <td>
-                    @Html.DisplayFor(modelItem => item.City)
-            </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Address)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Zip)
-            </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Phone)
-                </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id_Member">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id_Member">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id_Member">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
 </table>
 @section Scripts{
     <script>
-        $(document).ready(function () {
-            $('#IndxTbl').DataTable();
+        var table = $('#IndxTbl').DataTable({
+			ajax: {
+				url: '@Url.Action("GetAll", "Member")',
+				dataSrc: '',
+			},
+			columns: [
+                { data: "name", autoWidth: true },
+				{ data: "lastname", autoWidth: true },
+                { data: "email", autoWidth: true },
+                { data: "password", autoWidth: true },
+				{ data: "city", autoWidth: true },
+                { data: "address", autoWidth: true },
+                { data: "zip", autoWidth: true },
+                { data: "phone", autoWidth: true },
+				{
+					data: "id_Member",
+					render: function (data) {
+						return `<a class="btn btn-secondary" href="/Member/Edit/${data}">Edit</a> 
+                            <a class="btn btn-info" href="/Member/Details/${data}">Details</a> 
+                            <a class="btn-danger btn" href="/Member/Delete/${data}">Delete</a>`
+					},
+					autoWidth: true
+				}
+			],
+		});
+        //-------------
+        // Signal R
+        let connection = new signalR.HubConnectionBuilder().withUrl("/signalrhub", {
+            skipNegotiation: true,
+            transport: signalR.HttpTransportType.WebSockets
+        }).build();
+
+        connection.start()
+            .then(function () {
+                console.log('connection started');
+            })
+            .catch(error => {
+                console.error(error.message);
+            });
+
+        connection.on(("MemberModConnection"), function () {
+            table.ajax.reload();
+            toastr.options = {
+                "closeButton": true,
+                "debug": false,
+                "newestOnTop": true,
+                "progressBar": true,
+                "positionClass": "toast-bottom-right",
+                "preventDuplicates": false,
+                "onclick": null,
+                "showDuration": "300",
+                "hideDuration": "1000",
+                "timeOut": "10000",
+                "extendedTimeOut": "5000",
+                "showEasing": "swing",
+                "hideEasing": "linear",
+                "showMethod": "fadeIn",
+                "hideMethod": "fadeOut"
+            }
+            toastr["info"]("", "New changes have been made")
+
         });
     </script>
 }

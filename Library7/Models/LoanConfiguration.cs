@@ -7,7 +7,7 @@ namespace Library7.Models
 	{
 		[Key]
 		public int Id { get; set; }
-		public bool? Weekends { get; set; }
-		public double? FineAmount { get; set; }
+		public bool Weekends { get; set; }
+		public double FineAmount { get; set; }
 	}
 }

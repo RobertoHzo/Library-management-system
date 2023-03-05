@@ -1,5 +1,5 @@
-﻿@model IEnumerable<Library7.Models.Book>
-
+﻿@*@model IEnumerable<Library7.Models.Book>
+*@
 @{
 	ViewData["Title"] = "Index";
 }
@@ -10,9 +10,9 @@
 	}
 
 	/*.swal2-cancel {
-				background-color: blue !important;
-				color: white !important;
-			}*/
+						background-color: blue !important;
+						color: white !important;
+					}*/
 
 	.swal2-deny {
 		background-color: blue !important;
@@ -28,83 +28,57 @@
 	<thead>
 		<tr>
 			<th>
-				@Html.DisplayNameFor(model => model.ISBN)
+				ISBN
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.Title)
+				Title
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.Author)
+				Author
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.Id_Section)
+				Id_Section
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.Image)
+				Image
 			</th>
 			<th>
-				@Html.DisplayNameFor(model => model.Group_Id)
+				Group_Id
 			</th>
 			<th></th>
 		</tr>
 	</thead>
-	<tbody>
-		@foreach (var item in Model)
-		{
-			<tr>
-				<td>
-					@Html.DisplayFor(modelItem => item.ISBN)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Title)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Author)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Id_Section)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Image)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Group_Id)
-				</td>
-				<td>
-					<a asp-action="CreateCopy" asp-route-id="@item.Id_Book">Create copy</a> |
-					@*<a asp-action="Edit" asp-route-id="@item.Id_Book">Edit</a> |*@
-					<button onclick="SAlert(@item.Id_Book)">Edit</button>
-					<a asp-action="Details" asp-route-id="@item.Id_Book">Details</a> |
-					<a asp-action="Delete" asp-route-id="@item.Id_Book">Delete</a>
-				</td>
-			</tr>
-		}
-	</tbody>
+	
 </table>
 @section Scripts{
 	<script>
-		var connection = new signalR.HubConnectionBuilder().withUrl("/signalRHub").build();
-		connection.on("ReceiveMessage", function (user, message) {
-			var li = document.createElement("li");
-			document.getElementById("messagesList").appendChild(li);
-			// We can assign user-supplied strings to an element's textContent because it
-			// is not interpreted as markup. If you're assigning in any other way, you
-			// should be aware of possible script injection concerns.
-			li.textContent = `${user} says ${message}`;
+		var table = $('#IndxTbl').DataTable({
+			ajax: {
+				url: '@Url.Action("GetAll", "Book")',
+				dataSrc: '',
+			},
+			columns: [
+				{ data: "isbn", autoWidth: true },
+				{ data: "title", autoWidth: true },
+				{ data: "author", autoWidth: true },
+				{ data: "id_Section", autoWidth: true },
+				{ data: "image", autoWidth: true },
+				{ data: "group_Id", autoWidth: true },
+				{
+					data: "id_Book",
+					render: function (data) {
+						return `<a class="btn btn-secondary" href="/Book/Edit/${data}">Edit</a> 
+							<a class="btn btn-info" href="/Book/Details/${data}">Details</a> 
+							<a class="btn-danger btn" href="/Book/Delete/${data}">Delete</a>`
+					},
+					autoWidth: true
+				}
+			],
 		});
-
-		connection.start().then(function () {
-			document.getElementById("sendButton").disabled = false;
-		}).catch(function (err) {
-			return console.error(err.toString());
-		});
-
-		//$(document).ready(function () {
-		//	$('#IndxTbl').DataTable();
-		//});
+		//-------------------------
 		function SAlert(id) {
 			Swal.fire({
-				title: 'Do you want to continue?',
+				title: 'Select the option to edit',
 				showDenyButton: true,
 				showCancelButton: true,
 				confirmButtonText: `Edit ISBN`,
@@ -124,5 +98,43 @@
 				}
 			});
 		}
+		//-------------*------------
+		// Signal R
+		let connection = new signalR.HubConnectionBuilder().withUrl("/signalrhub", {
+			skipNegotiation: true,
+			transport: signalR.HttpTransportType.WebSockets
+		}).build();
+
+		connection.start()
+			.then(function () {
+				console.log('connection started');
+			})
+			.catch(error => {
+				console.error(error.message);
+			});
+
+		connection.on(("BookModConnection"), function () {
+			table.ajax.reload();
+			toastr.options = {
+				"closeButton": true,
+				"debug": false,
+				"newestOnTop": true,
+				"progressBar": true,
+				"positionClass": "toast-bottom-right",
+				"preventDuplicates": false,
+				"onclick": null,
+				"showDuration": "300",
+				"hideDuration": "1000",
+				"timeOut": "10000",
+				"extendedTimeOut": "5000",
+				"showEasing": "swing",
+				"hideEasing": "linear",
+				"showMethod": "fadeIn",
+				"hideMethod": "fadeOut"
+			}
+			toastr["info"]("", "New changes have been made")
+
+
+		});
 	</script>
 }

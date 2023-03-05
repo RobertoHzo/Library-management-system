@@ -7,11 +7,11 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<title>@ViewData["Title"] - Library7</title>
+	<script src="~/js/signalr/signalr.js"></script>
 	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 	<link rel="stylesheet" href="~/Library7.styles.css" asp-append-version="true" />
-
-
+	<link rel="stylesheet" href="~/lib/toastr/css/toastr.min.css" />
 	<link rel="stylesheet" type="text/css" href="~/lib/DataTables/datatables.min.css" />
 	<link rel="stylesheet" type="text/css" href="~/lib/SweetAlert2/sweetalert2.min.css" />
 </head>
@@ -60,7 +60,7 @@
 								</li>
 								<li class="nav-item">
 									<a class="nav-link text-dark" asp-area="" asp-controller="Loan" asp-action="Index">Loan</a>
-								</li>							
+								</li>
 							}
 							<li class="nav-item">
 								<a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout">Logout</a>
@@ -86,10 +86,9 @@
 	<script src="~/lib/jquery/dist/jquery.min.js"></script>
 	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="~/js/site.js" asp-append-version="true"></script>
-	<script src="~/js/signalr/dist/browser/signalr.js"></script>
-
 
 	<script type="text/javascript" src="~/lib/DataTables/datatables.min.js"></script>
+	<script src="~/lib/toastr/js/toastr.min.js"></script>
 	<script type="text/javascript" src="~/lib/SweetAlert2/sweetalert2.all.min.js"></script>
 	@await RenderSectionAsync("Scripts", required: false)
 </body>

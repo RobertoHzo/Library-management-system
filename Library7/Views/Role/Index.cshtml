@@ -44,5 +44,23 @@
         $(document).ready(function () {
             $('#IndxTbl').DataTable();
         });
+        //-------------
+        // Signal R
+        let connection = new signalR.HubConnectionBuilder().withUrl("/signalrhub", {
+            skipNegotiation: true,
+            transport: signalR.HttpTransportType.WebSockets
+        }).build();
+
+        connection.start()
+            .then(function () {
+                console.log('connection started');
+            })
+            .catch(error => {
+                console.error(error.message);
+            });
+
+        connection.on(("RoleModification"), function () {
+            console.log("success");
+        });
     </script>
 }
