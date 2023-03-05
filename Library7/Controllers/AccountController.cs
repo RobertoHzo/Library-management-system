@@ -22,7 +22,7 @@ namespace Library7.Controllers
 		}
 
 		#region Views
-		public IActionResult Login()
+		public ActionResult Login()
 		{
 			// Verifica si hay una sesion en cookies
 			ClaimsPrincipal c = HttpContext.User;
@@ -35,7 +35,7 @@ namespace Library7.Controllers
 			}
 			return View();
 		}
-		public IActionResult Register()
+		public ActionResult Register()
 		{
 			// Verifica si hay una sesion en cookies
 			ClaimsPrincipal c = HttpContext.User;
@@ -48,7 +48,7 @@ namespace Library7.Controllers
 			}
 			return View();
 		}
-		public IActionResult UserLogin()
+		public ActionResult UserLogin()
 		{
 			// Verifica si hay una sesion en cookies
 			ClaimsPrincipal c = HttpContext.User;

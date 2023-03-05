@@ -20,7 +20,7 @@
     </dl>
     
     <form asp-action="DeleteConfirmed">
-        <input type="hidden" asp-for="Id_Section" />
+        <input type="hidden" name="Id_Section" value="@Model.Id_Section"/>
         <input type="submit" value="Delete" class="btn btn-danger" /> |
         <a asp-action="Index">Back to List</a>
     </form>

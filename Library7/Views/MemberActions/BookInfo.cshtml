@@ -45,7 +45,10 @@
     </dl>
 </div>
 <div>
-    
-    <a asp-action="MakeSavedBook" asp-route-id="@Model?.Id_Book">Save book</a> |
+    <form asp-action="MakeSavedBook">
+        <input type="hidden" name="Id_Book" value="@Model.Id_Book" />
+		<input type="submit" value="Save book" class="btn btn-outline-success" />
+    </form>
+    |
     <a asp-action="Index">Back to List</a>
 </div>

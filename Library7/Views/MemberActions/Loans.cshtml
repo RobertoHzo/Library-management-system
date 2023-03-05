@@ -18,6 +18,46 @@
 		</div>
 	</div>
 }
+@section Scripts
+	{
+	<script>
+		// Signal R
+		let connection = new signalR.HubConnectionBuilder().withUrl("/signalrhub", {
+			skipNegotiation: true,
+			transport: signalR.HttpTransportType.WebSockets
+		}).build();
+		let memberLoan = "MemberLoan" + @ViewBag.MemberId;
+		connection.start()
+			.then(function () {
+				console.log('connection started');
+				//console.info(memberLoan);
+			})
+			.catch(error => {
+				console.error(error.message);
+			});
+
+		connection.on((memberLoan), function () {
+			toastr.options = {
+				"closeButton": true,
+				"debug": false,
+				"newestOnTop": true,
+				"progressBar": true,
+				"positionClass": "toast-bottom-right",
+				"preventDuplicates": false,
+				"onclick": null,
+				"showDuration": "300",
+				"hideDuration": "1000",
+				"timeOut": "10000",
+				"extendedTimeOut": "5000",
+				"showEasing": "swing",
+				"hideEasing": "linear",
+				"showMethod": "fadeIn",
+				"hideMethod": "fadeOut"
+			}
+			toastr["info"]("", "New loan has been made")
+		});
+	</script>
+}
 
 
 

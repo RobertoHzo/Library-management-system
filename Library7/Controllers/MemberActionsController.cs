@@ -11,212 +11,184 @@ using System.Security.Claims;
 
 namespace Library7.Controllers
 {
-    [Authorize]
-    public class MemberActionsController : Controller
-    {
-        private readonly Library7Context _context;
-        private readonly DBContext1 _dbContext;
-        private readonly IHubContext<SignalRHub> _hubContext;
+	[Authorize]
+	public class MemberActionsController : Controller
+	{
+		private readonly Library7Context _context;
+		private readonly IHubContext<SignalRHub> _hubContext;
 
-        public MemberActionsController(
-            Library7Context context, DBContext1 dbContext, IHubContext<SignalRHub> hubContext)
-        {
-            _context = context;
-            _dbContext = dbContext;
-            _hubContext = hubContext;
-        }
+		public MemberActionsController(
+			Library7Context context, IHubContext<SignalRHub> hubContext)
+		{
+			_context = context;
+			_hubContext = hubContext;
+		}
 
-        #region Views
+		#region Views
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
-        {
-            ViewBag.Sections = await _context.Section.ToListAsync();
+		[HttpGet]
+		public async Task<ActionResult> Index()
+		{
+			ViewBag.Sections = await _context.Section.ToListAsync();
 
-            ViewBag.Books = await _context.Book.GroupBy(t => new
-            { t.Group_Id, t.Title, t.Author, t.Id_Section, t.Image })
-                .Select(r => new
-                {
-                    Group_Id = r.Key.Group_Id,
-                    Title = r.Key.Title,
-                    Author = r.Key.Author,
-                    Id_Section = r.Key.Id_Section,
-                    Image = r.Key.Image,
-                    Count = r.Count()
-                })
-                .ToListAsync();
-            return View();
-        }
+			ViewBag.Books = await _context.Book.GroupBy(t => new
+			{ t.Group_Id, t.Title, t.Author, t.Id_Section, t.Image })
+				.Select(r => new
+				{
+					Group_Id = r.Key.Group_Id,
+					Title = r.Key.Title,
+					Author = r.Key.Author,
+					Id_Section = r.Key.Id_Section,
+					Image = r.Key.Image,
+					Count = r.Count()
+				})
+				.ToListAsync();
+			return View();
+		}
 
-        [HttpPost]
-        public async Task<IActionResult> Index(string searchData)
-        {
-            var books = await _context.Book
-                .Where(b => b.Title.Contains(searchData) || b.Author.Contains(searchData))
-                .GroupBy(t => new { t.Group_Id, t.Title, t.Author, t.Id_Section, t.Image })
-                .Select(r => new
-                {
-                    Group_Id = r.Key.Group_Id,
-                    Title = r.Key.Title,
-                    Author = r.Key.Author,
-                    Id_Section = r.Key.Id_Section,
-                    Image = r.Key.Image,
-                    Count = r.Count()
-                })
-                .ToListAsync();
-            ViewBag.Books = books;
-            ViewBag.searchData = searchData;
-            return View();
-        }
+		// When the user searches for a book
+		[HttpPost]
+		public async Task<ActionResult> Index(string searchData)
+		{
+			var books = await _context.Book
+				.Where(b => b.Title.Contains(searchData) || b.Author.Contains(searchData))
+				.GroupBy(t => new { t.Group_Id, t.Title, t.Author, t.Id_Section, t.Image })
+				.Select(r => new
+				{
+					Group_Id = r.Key.Group_Id,
+					Title = r.Key.Title,
+					Author = r.Key.Author,
+					Id_Section = r.Key.Id_Section,
+					Image = r.Key.Image,
+					Count = r.Count()
+				})
+				.ToListAsync();
+			ViewBag.Books = books;
+			ViewBag.searchData = searchData;
+			return View();
+		}
 
-        [HttpGet]
-        [Route("MemberActions/Books/{Id_Section:int}")]
-        public async Task<IActionResult> Books(int? Id_Section)
-        {
-            var section = await _context.Section
-                .Where(x => x.Id_Section == Id_Section)
-                .Select(x => x.Name)
-                .FirstOrDefaultAsync();
-            ViewBag.Section = section.ToString();
+		[HttpGet]
+		[Route("MemberActions/Books/{Id_Section:int}")]
+		public async Task<ActionResult> Books(int Id_Section)
+		{
+			if (Id_Section <= 0)
+				return View("Index");
 
-            ViewBag.Books = await _context.Book
-                .GroupBy(t => new { t.Group_Id, t.Title, t.Author, t.Id_Section, t.Image })
-                .Select(r => new
-                {
-                    Group_Id = r.Key.Group_Id,
-                    Title = r.Key.Title,
-                    Author = r.Key.Author,
-                    Id_Section = r.Key.Id_Section,
-                    Image = r.Key.Image,
-                    Count = r.Count()
-                })
-                .Where(x => x.Id_Section == Id_Section)
-                .ToListAsync();
+			var section = await _context.Section
+				.Where(x => x.Id_Section == Id_Section)
+				.Select(x => x.Name)
+				.FirstOrDefaultAsync();
+			if (section == null)
+				return View("Index");
 
-            return View();
-        }
+			ViewBag.Section = section.ToString();
 
-        public async Task<IActionResult> BookInfo(int id)
-        {
-            if (id <= 0)
-                return NotFound();
+			ViewBag.Books = await _context.Book
+				.GroupBy(t => new { t.Group_Id, t.Title, t.Author, t.Id_Section, t.Image })
+				.Select(r => new
+				{
+					Group_Id = r.Key.Group_Id,
+					Title = r.Key.Title,
+					Author = r.Key.Author,
+					Id_Section = r.Key.Id_Section,
+					Image = r.Key.Image,
+					Count = r.Count()
+				})
+				.Where(x => x.Id_Section == Id_Section)
+				.ToListAsync();
 
-            var book = await _context.Book.FindAsync(id);
-            if (book == null)
-                return NotFound();
+			return View();
+		}
 
-            return View(book);
-        }
+		public async Task<ActionResult> BookInfo(int id)
+		{
+			if (id <= 0)
+				return NotFound();
 
-        public async Task<IActionResult> Loans()
-        {
-            var claimsIdentity = User.Identity as ClaimsIdentity;
-            var userIdClaim = claimsIdentity.FindFirst("Id");
+			var book = await _context.Book.FindAsync(id);
+			if (book == null)
+				return NotFound();
 
-            var loans = await _context.Loan
-                .Where(m => m.Id_Member == int.Parse(userIdClaim.Value))
-                .ToListAsync();
+			return View(book);
+		}
 
-            ViewBag.Loans = loans;
+		public async Task<ActionResult> Loans()
+		{
+			int memberId = GetMemberId();
 
-            return View();
-        }
+			var loans = await _context.Loan
+				.Where(m => m.Id_Member == memberId)
+				.ToListAsync();
 
-        public async Task<IActionResult> SavedBooks()
-        {
-            var claimsIdentity = User.Identity as ClaimsIdentity;
-            var userIdClaim = claimsIdentity.FindFirst("Id");
+			ViewBag.Loans = loans;
+			ViewBag.MemberId = memberId;
 
-            var savedBooks = await _context.SavedBook
-                .Where(x => x.Id_Member == int.Parse(userIdClaim.Value))
-                .ToListAsync();
-            return _context.SavedBook != null ?
-                         View(savedBooks) :
-                         Problem("Entity set 'Library7Context.Libro'  is null.");
-        }
-        #endregion
+			return View();
+		}
 
-        #region Actions
+		public async Task<ActionResult> SavedBooks()
+		{
+			int memberId = GetMemberId();
 
-        [HttpGet]
-        [Route("MemberActions/MakeSavedBook/{Id_Book:int}")]
-        public async Task<IActionResult> MakeSavedBook(int Id_Book)
-        {
-            var claimsIdentity = User.Identity as ClaimsIdentity;
-            var userIdClaim = claimsIdentity.FindFirst("Id");
-            
-            if(userIdClaim == null) return RedirectToAction("Login","Account");
-            // Crea el SavedBook
-            SavedBook sav = new SavedBook
-            {
-                Id_Book = Id_Book,
-                Id_Member = int.Parse(userIdClaim.Value)
-            };
-            // Añade el SavedBook a la bd
-            if (ModelState.IsValid)
-            {
-                _context.Add(sav);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
-            }
-            return View(sav);
-        }
+			var savedBooks = await _context.SavedBook
+				.Where(x => x.Id_Member == memberId)
+				.ToListAsync();
+			return _context.SavedBook != null ?
+						 View(savedBooks) :
+						 Problem("Entity set 'Library7Context.Libro'  is null.");
+		}
+		#endregion
 
-        [HttpGet]
-        [Route("MemberActions/DeleteSavedBook/{Id_SavedBook:int}")]
-        public async Task<IActionResult> DeleteSavedBook(int Id_SavedBook)
-        {
-            if (Id_SavedBook <= 0)
-            {
-                var sb = await _context.SavedBook.FindAsync(Id_SavedBook);
-                if (sb != null)
-                {
-                    _context.SavedBook.Remove(sb);
-                    await _context.SaveChangesAsync();
-                }
-            }
-            return RedirectToAction(nameof(SavedBooks));
-        }
+		#region Actions
 
-        #endregion
+		[HttpPost]
+		public async Task<IActionResult> MakeSavedBook([Bind("Id_Book")] SavedBook savedBook)
+		{
+			int memberId = GetMemberId();
 
-        #region Lists
+			if (!ModelState.IsValid || savedBook.Id_Book <= 0)
+				return NotFound(savedBook);
 
-        public async Task<IActionResult> GetBooksBySection(int Id_Section)
-        {
-            var booksList = await _context.Book
-                .Where(b => b.Id_Section == Id_Section)
-                .Select(b => new BookObject
-                {
-                    Id_Book = b.Id_Book.ToString(),
-                    Title = b.Title,
-                    Id_Section = b.Id_Section,
-                    Image = b.Image
-                })
-                .ToListAsync();
+			SavedBook sav = new()
+			{
+				Id_Book = savedBook.Id_Book,
+				Id_Member = memberId
+			};
+			_context.Add(sav);
+			await _context.SaveChangesAsync();
+			return RedirectToAction("Index");
+		}
 
-            return Ok(booksList);
-        }
+		[HttpPost]
+		public async Task<IActionResult> DeleteSavedBook([Bind("Id_SavedBook")] SavedBook savedBook)
+		{
+			if (savedBook.Id_SavedBook <= 0 || !ModelState.IsValid)
+				return NotFound();
+
+			var sb = await _context.SavedBook.FindAsync(savedBook.Id_SavedBook);
+			if (sb == null)
+				return NotFound(sb);
+
+			_context.SavedBook.Remove(sb);
+			await _context.SaveChangesAsync();
+
+			return RedirectToAction(nameof(SavedBooks));
+		}
+
+		public int GetMemberId()
+		{
+			var claimsIdentity = User.Identity as ClaimsIdentity;
+			var userIdClaim = claimsIdentity.FindFirst("Id");
+			if (userIdClaim == null)
+				return 0;
+			return int.Parse(userIdClaim.Value);
+		}
+
+		#endregion
 
 
-        public async Task<IActionResult> GetSections()
-        {
-            var sectionList = await _context.Section.ToListAsync();
-            return Ok(sectionList);
-        }
 
 
-        #endregion
-
-        #region Objects
-        public class BookObject
-        {
-            public string Id_Book { get; set; }
-            public string Title { get; set; }
-            public int Id_Section { get; set; }
-            public string? Image { get; set; }
-        }
-        #endregion
-
-    }
+	}
 }

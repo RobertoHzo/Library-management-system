@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-
 namespace Library7.Controllers
 {
     [Authorize]
@@ -21,37 +20,74 @@ namespace Library7.Controllers
             _hubContext = hubContext;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Index()
-        {
-            return _context.Book == null ?
-                          Problem("Entity set 'Library7Context.Libro'  is null.") :
-                          View(await _context.Book
-                          .OrderBy(x => x.Group_Id)
-                          .ThenBy(x => x.Title)
-                          .ToListAsync());
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Details(int id)
-        {
-            if (id <= 0)
-                return NotFound();
-            var book = await _context.Book.FindAsync(id);
-            if (book == null)
-                return NotFound();
-            return View(book);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Create()
-        {
-            var sections = await _context.Section.ToListAsync();
-            ViewBag.Sections = new SelectList(sections, "Id_Section", "Name");
+		#region Views
+		[HttpGet]
+		public ActionResult Index()
+		{		
             return View();
-        }
+		}
 
-        [HttpPost]
+		[HttpGet]
+		public async Task<ActionResult> Details(int id)
+		{
+			if (id <= 0)
+				return NotFound();
+			var book = await _context.Book.FindAsync(id);
+			if (book == null)
+				return NotFound();
+			return View(book);
+		}
+
+		[HttpGet]
+		public async Task<ActionResult> Create()
+		{
+			var sections = await _context.Section.ToListAsync();
+			ViewBag.Sections = new SelectList(sections, "Id_Section", "Name");
+			return View();
+		}
+
+		[HttpGet]
+		public async Task<ActionResult> CreateCopy(int id)
+		{
+			if (id <= 0)
+				return NotFound();
+			var book = await _context.Book.FindAsync(id);
+			if (book == null)
+				return NotFound();
+			return View(book);
+		}
+
+		[HttpGet]
+		public async Task<ActionResult> Edit(int id, int option)
+		{
+			if (id <= 0)
+				return NotFound();
+			var book = await _context.Book.FindAsync(id);
+			if (book == null)
+				return NotFound();
+			var sections = await _context.Section.ToListAsync();
+			ViewBag.Sections = new SelectList(sections, "Id_Section", "Name");
+			ViewBag.Option = option;
+			return View(book);
+		}
+
+		[HttpGet]
+		public async Task<ActionResult> Delete(int? id)
+		{
+			if (id == null || _context.Book == null)
+				return NotFound();
+			var libro = await _context.Book
+				.FirstOrDefaultAsync(m => m.Id_Book == id);
+			if (libro == null)
+				return NotFound();
+			return View(libro);
+		}
+
+		#endregion
+
+		#region Actions
+
+		[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             [Bind("Group_Id,ISBN,Title,Author,Id_Section,Image")] Book book)
@@ -67,31 +103,7 @@ namespace Library7.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> CreateCopy(int id)
-        {
-            if (id <= 0)
-                return NotFound();
-            var book = await _context.Book.FindAsync(id);
-            if (book == null)
-                return NotFound();
-            return View(book);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> Edit(int id, int option)
-        {
-            if (id <= 0)
-                return NotFound();
-            var book = await _context.Book.FindAsync(id);
-            if (book == null)
-                return NotFound();
-            var sections = await _context.Section.ToListAsync();
-            ViewBag.Sections = new SelectList(sections, "Id_Section", "Name");
-            ViewBag.Option = option;
-            return View(book);
-        }
-
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id,
@@ -103,8 +115,7 @@ namespace Library7.Controllers
                 return View(book);
             try
             {
-                var existingBook = await _context.Book
-                    .FirstOrDefaultAsync(x => x.Id_Book == id);
+                var existingBook = await _context.Book.FindAsync(book.Id_Book);
                 if (existingBook == null)
                     return NotFound();
                 if (book.ISBN == null) // Update of multiple records
@@ -124,6 +135,7 @@ namespace Library7.Controllers
                 }
                 else // Updae a single record
                     existingBook.ISBN = book.ISBN;
+
                 await _context.SaveChangesAsync();
                 await BookModConnection();
             }
@@ -137,17 +149,7 @@ namespace Library7.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null || _context.Book == null)
-                return NotFound();
-            var libro = await _context.Book
-                .FirstOrDefaultAsync(m => m.Id_Book == id);
-            if (libro == null)
-                return NotFound();
-            return View(libro);
-        }
+        
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -164,7 +166,18 @@ namespace Library7.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool BookExists(int id)
+		#endregion
+
+        public async Task<ActionResult> GetAll()
+        {
+			var books = await _context.Book
+				.OrderBy(x => x.Group_Id)
+				.ThenBy(x => x.Title)
+				.ToListAsync();
+			return Json(books);
+		}
+
+		private bool BookExists(int id)
         {
             return (_context.Book?.Any(e => e.Id_Book == id)).GetValueOrDefault();
         }

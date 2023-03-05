@@ -17,7 +17,7 @@ namespace Library7.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public ActionResult Index()
         {
             //Para obtener los datos de los claims personalizados
             if (User.Identity.IsAuthenticated)
@@ -29,13 +29,13 @@ namespace Library7.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public ActionResult Privacy()
         {
             return View();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public ActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
