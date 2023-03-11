@@ -2005,14 +2005,6 @@
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
     },
     {
-      "Id": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\lib\\toastr\\css\\toastr.min.css",
-      "PackagePath": "staticwebassets\\lib\\toastr\\css\\toastr.min.css"
-    },
-    {
-      "Id": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\lib\\toastr\\js\\toastr.min.js",
-      "PackagePath": "staticwebassets\\lib\\toastr\\js\\toastr.min.js"
-    },
-    {
       "Id": "obj\\Debug\\net7.0\\staticwebassets\\msbuild.Library7.Microsoft.AspNetCore.StaticWebAssets.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
     },

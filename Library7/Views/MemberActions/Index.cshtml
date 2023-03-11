@@ -7,7 +7,7 @@
 	<input type="submit" value="Search" />
 	<a asp-action="Index" class="btn btn-close"></a>
 </form>
-@if (ViewBag.Sections != null)
+@if (ViewBag.Sections is not null)
 {
 	<div id="SectionsDiv" style="margin-bottom:15px;margin-top:15px;">
 		@foreach (var sec in ViewBag.Sections)
@@ -27,9 +27,7 @@
 						<div class="card">
 							<h3 class="card-header">@book.Title</h3>
 							<div class="card-body">
-								<h5>Section: @book.Id_Section</h5>
 								<p>Image: @book.Image</p>
-								<p>Count: @book.Count</p>
 								<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Group_Id">More info</a>
 							</div>
 						</div>
@@ -50,9 +48,7 @@ else
 				<div class="card">
 					<h3 class="card-header">@book.Title</h3>
 					<div class="card-body">
-						<h5>Section: @book.Id_Section</h5>
 						<p>Image: @book.Image</p>
-						<p>Count: @book.Count</p>
 						<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Group_Id">More info</a>
 					</div>
 				</div>

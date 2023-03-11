@@ -14,28 +14,5 @@ namespace Library7.Models
         public int Id_Section { get; set; }
         public string? Image { get; set; }
 		public int Group_Id { get; set; }
-
-		//[NotMapped]
-		//public int Count { get; set; }
-
-		// Verificacion para ver si se puede crear el prestamo
-		//public ICollection<Loan> Loans { get; set; }
-		//public bool CanLoan()
-		//{
-		//	int activeLoans = Loans.Count(l => l.ReturnDate == null);
-		//	return activeLoans < Copies;
-		//}
-
-		//public int AvailableCopies
-		//{
-		//	get
-		//	{
-		//		int activeLoans = Loans.Count(l => l.ReturnDate == null);
-		//		return Copies - activeLoans;
-		//	}
-		//}
-
-		
-
 	}
 }

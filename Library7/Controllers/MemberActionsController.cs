@@ -4,7 +4,6 @@ using Library7.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Security.Claims;
@@ -31,22 +30,22 @@ namespace Library7.Controllers
 		{
 			ViewBag.Sections = await _context.Section.ToListAsync();
 
-			ViewBag.Books = await _context.Book.GroupBy(t => new
-			{ t.Group_Id, t.Title, t.Author, t.Id_Section, t.Image })
-				.Select(r => new
-				{
-					Group_Id = r.Key.Group_Id,
-					Title = r.Key.Title,
-					Author = r.Key.Author,
-					Id_Section = r.Key.Id_Section,
-					Image = r.Key.Image,
-					Count = r.Count()
-				})
-				.ToListAsync();
+			var bookGroups = await _context.Book.Select(x => x.Group_Id)
+				.Distinct().ToListAsync();
+
+			List<Book> books = new();
+			foreach (var bookGroup in bookGroups)
+			{
+				var book = await _context.Book
+					.Where(x => x.Group_Id == bookGroup)
+					.FirstOrDefaultAsync();
+				books.Add(book);
+			};
+			ViewBag.Books = books;
 			return View();
 		}
 
-		// When the user searches for a book
+		// When the user search for a book
 		[HttpPost]
 		public async Task<ActionResult> Index(string searchData)
 		{
@@ -55,15 +54,14 @@ namespace Library7.Controllers
 				.GroupBy(t => new { t.Group_Id, t.Title, t.Author, t.Id_Section, t.Image })
 				.Select(r => new
 				{
-					Group_Id = r.Key.Group_Id,
-					Title = r.Key.Title,
-					Author = r.Key.Author,
-					Id_Section = r.Key.Id_Section,
-					Image = r.Key.Image,
-					Count = r.Count()
+					r.Key.Group_Id,
+					r.Key.Title,
+					r.Key.Author,
+					r.Key.Id_Section,
+					r.Key.Image,
 				})
 				.ToListAsync();
-			ViewBag.Books = books;
+			ViewBag.Books = (books.Count > 0) ? books : null;
 			ViewBag.searchData = searchData;
 			return View();
 		}
@@ -84,20 +82,19 @@ namespace Library7.Controllers
 
 			ViewBag.Section = section.ToString();
 
-			ViewBag.Books = await _context.Book
+			var books = await _context.Book
 				.GroupBy(t => new { t.Group_Id, t.Title, t.Author, t.Id_Section, t.Image })
 				.Select(r => new
 				{
-					Group_Id = r.Key.Group_Id,
-					Title = r.Key.Title,
-					Author = r.Key.Author,
-					Id_Section = r.Key.Id_Section,
-					Image = r.Key.Image,
-					Count = r.Count()
+					r.Key.Group_Id,
+					r.Key.Title,
+					r.Key.Author,
+					r.Key.Id_Section,
+					r.Key.Image,
 				})
 				.Where(x => x.Id_Section == Id_Section)
 				.ToListAsync();
-
+			ViewBag.Books = (books.Count > 0) ? books : null;
 			return View();
 		}
 
@@ -106,10 +103,21 @@ namespace Library7.Controllers
 			if (id <= 0)
 				return NotFound();
 
-			var book = await _context.Book.FindAsync(id);
+			var book = await _context.Book
+				.Where(x => x.Group_Id == id)
+				.FirstOrDefaultAsync();
 			if (book == null)
 				return NotFound();
 
+			bool isSaved = false;
+			var savedBook = await _context.SavedGroup
+				.Where(x => x.Group_Id == id && x.Id_Member == GetMemberId())
+				.FirstOrDefaultAsync();
+
+			if (savedBook is not null)
+				isSaved = true;
+
+			ViewBag.isSaved = isSaved;
 			return View(book);
 		}
 
@@ -127,32 +135,40 @@ namespace Library7.Controllers
 			return View();
 		}
 
+		[HttpGet]
 		public async Task<ActionResult> SavedBooks()
 		{
 			int memberId = GetMemberId();
 
-			var savedBooks = await _context.SavedBook
-				.Where(x => x.Id_Member == memberId)
+			var savedBooks = await _context.SavedGroup
+				.Where(sb => sb.Id_Member == memberId)
+				.Select(sb => new SavedGroupViewModel
+				{
+					Id_SavedGroup = sb.Id_SavedGroup,
+					Id_Member= sb.Id_Member,
+					Title = _context.Book
+					.Where(b => b.Group_Id == sb.Group_Id)
+					.Select(b => b.Title)
+					.FirstOrDefault(),
+				})
 				.ToListAsync();
-			return _context.SavedBook != null ?
-						 View(savedBooks) :
-						 Problem("Entity set 'Library7Context.Libro'  is null.");
+			return View(savedBooks);
 		}
 		#endregion
 
 		#region Actions
 
 		[HttpPost]
-		public async Task<IActionResult> MakeSavedBook([Bind("Id_Book")] SavedBook savedBook)
+		public async Task<IActionResult> MakeSavedBook([Bind("Group_Id")] SavedGroup savedGroup)
 		{
 			int memberId = GetMemberId();
 
-			if (!ModelState.IsValid || savedBook.Id_Book <= 0)
-				return NotFound(savedBook);
+			if (!ModelState.IsValid || savedGroup.Group_Id <= 0)
+				return NotFound(savedGroup);
 
-			SavedBook sav = new()
+			SavedGroup sav = new()
 			{
-				Id_Book = savedBook.Id_Book,
+				Group_Id = savedGroup.Group_Id,
 				Id_Member = memberId
 			};
 			_context.Add(sav);
@@ -161,16 +177,16 @@ namespace Library7.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> DeleteSavedBook([Bind("Id_SavedBook")] SavedBook savedBook)
+		public async Task<IActionResult> DeleteSavedBook([Bind("Id_SavedGroup")] SavedGroup savedBook)
 		{
-			if (savedBook.Id_SavedBook <= 0 || !ModelState.IsValid)
+			if (savedBook.Id_SavedGroup <= 0 || !ModelState.IsValid)
 				return NotFound();
 
-			var sb = await _context.SavedBook.FindAsync(savedBook.Id_SavedBook);
+			var sb = await _context.SavedGroup.FindAsync(savedBook.Id_SavedGroup);
 			if (sb == null)
 				return NotFound(sb);
 
-			_context.SavedBook.Remove(sb);
+			_context.SavedGroup.Remove(sb);
 			await _context.SaveChangesAsync();
 
 			return RedirectToAction(nameof(SavedBooks));
@@ -186,6 +202,7 @@ namespace Library7.Controllers
 		}
 
 		#endregion
+
 
 
 

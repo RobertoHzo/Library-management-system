@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "PK7XnCBTl6cZ+8N//+3WYGE32DxdaD6nUVckqYN2H/g=",
+  "Hash": "uH0h0juzNVVvN9S26IKxK/ZS95Ua/eDqsReMVVwAfiU=",
   "Source": "Library7",
   "BasePath": "_content/Library7",
   "Mode": "Default",
@@ -8549,40 +8549,6 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\lib\\SweetAlert2\\sweetalert2.min.css"
-    },
-    {
-      "Identity": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\lib\\toastr\\css\\toastr.min.css",
-      "SourceId": "Library7",
-      "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\",
-      "BasePath": "_content/Library7",
-      "RelativePath": "lib/toastr/css/toastr.min.css",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\lib\\toastr\\css\\toastr.min.css"
-    },
-    {
-      "Identity": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\lib\\toastr\\js\\toastr.min.js",
-      "SourceId": "Library7",
-      "SourceType": "Discovered",
-      "ContentRoot": "C:\\Users\\r0ber\\source\\repos\\Library7\\Library7\\wwwroot\\",
-      "BasePath": "_content/Library7",
-      "RelativePath": "lib/toastr/js/toastr.min.js",
-      "AssetKind": "All",
-      "AssetMode": "All",
-      "AssetRole": "Primary",
-      "RelatedAsset": "",
-      "AssetTraitName": "",
-      "AssetTraitValue": "",
-      "CopyToOutputDirectory": "Never",
-      "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\lib\\toastr\\js\\toastr.min.js"
     }
   ]
 }
