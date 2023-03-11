@@ -1,4 +1,4 @@
-﻿@model IEnumerable<Library7.Models.SavedBook>
+﻿@model IEnumerable<SavedGroupViewModel>
 
 @{
 	ViewData["Title"] = "Saved books";
@@ -11,7 +11,7 @@
 	<thead>
 		<tr>
 			<th>
-				@Html.DisplayNameFor(model => model.Id_Book)
+				@Html.DisplayNameFor(model => model.Title)
 			</th>
 			<th>
 				@Html.DisplayNameFor(model => model.Id_Member)
@@ -24,14 +24,14 @@
 		{
 			<tr>
 				<td>
-					@Html.DisplayFor(modelItem => item.Id_Book)
+					@Html.DisplayFor(modelItem => item.Title)
 				</td>
 				<td>
 					@Html.DisplayFor(modelItem => item.Id_Member)
 				</td>
 				<td>
 					<form asp-action="DeleteSavedBook">
-						<input name="Id_SavedBook" type="hidden" value="@item.Id_SavedBook">
+						<input name="Id_SavedGroup" type="hidden" value="@item.Id_SavedGroup">
 						<button type="submit" class="btn btn-outline-danger">Delete</button>
 					</form>
 				</td>

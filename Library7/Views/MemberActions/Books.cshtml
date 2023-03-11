@@ -6,15 +6,20 @@
 }
 
 <h1>@ViewBag.Section</h1>
-@foreach (var book in ViewBag.Books)
+@if (ViewBag.Books is not null)
 {
-	<div class="card">
-		<h3 class="card-header">@book.Title</h3>
-		<div class="card-body">
-			<h5>Section: @book.Id_Section</h5>
-			<p>Image: @book.Image</p>
-			<p>Count: @book.Count</p>
-			<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Group_Id">More info</a>
+	foreach (var book in ViewBag.Books)
+	{
+		<div class="card">
+			<h3 class="card-header">@book.Title</h3>
+			<div class="card-body">
+				<h5>Section: @book.Id_Section</h5>
+				<p>Image: @book.Image</p>
+				<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Group_Id">More info</a>
+			</div>
 		</div>
-	</div>
+	}
+}
+else{
+	<h4>No results :(</h4>
 }

@@ -22,7 +22,9 @@ namespace Library7.Data
         public DbSet<Loan> Loan { get; set; } = default!;
 
         public DbSet<Fine> Fine { get; set; } = default!;
-		public DbSet<SavedBook> SavedBook { get; set; } = default!;
+		public DbSet<SavedGroup> SavedGroup { get; set; } = default!;
 		public DbSet<LoanConfiguration> LoanConfiguration { get; set; } = default!;
+
+
 	}
 }
