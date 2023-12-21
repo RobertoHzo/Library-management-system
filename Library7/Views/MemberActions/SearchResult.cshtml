@@ -1,0 +1,22 @@
+﻿@model IEnumerable<Library7.Models.Book>
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<div>
+	<h2>Results</h2>
+	@foreach (var book in Model)
+	{
+
+		<div class="card">
+			<h3 class="card-header">@book.Title</h3>
+			<div class="card-body">
+				<h5>Section: @book.Id_Section</h5>
+				<p>Image: @book.Image</p>
+				<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Id_Book">More info</a>
+			</div>
+		</div>
+
+	}
+</div>

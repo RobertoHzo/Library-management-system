@@ -1,0 +1,67 @@
+﻿@*
+*@
+@{
+}
+<form method="post">
+	<input type="text" name="searchData" value="@ViewBag.searchData" />
+	<input type="submit" value="Search" />
+	<a asp-action="Index" class="btn btn-close"></a>
+</form>
+@if (ViewBag.Sections is not null)
+{
+	<div id="SectionsDiv" style="margin-bottom:15px;margin-top:15px;">
+		@foreach (var sec in ViewBag.Sections)
+		{
+			<a class="btn btn-outline-secondary" asp-controller="MemberActions" asp-action="Books" asp-route-id="@sec.Id_Section">@sec.Name</a>
+		}
+	</div>
+	<div id="MainDiv">
+		@foreach (var sec in ViewBag.Sections)
+		{
+			<div>
+				<h2>@sec.Name</h2>
+				@foreach (var book in ViewBag.Books)
+				{
+					@if (book.Id_Section == sec.Id_Section)
+					{
+						<div class="card">
+							<h3 class="card-header">@book.Title</h3>
+							<div class="card-body">
+								<p>Image: @book.Image</p>
+								<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Group_Id">More info</a>
+							</div>
+						</div>
+					}
+				}
+			</div>
+		}
+	</div>
+}
+else
+{
+	@if (ViewBag.Books.Count > 0)
+	{
+		<div>
+			<h2>Results</h2>
+			@foreach (var book in ViewBag.Books)
+			{
+				<div class="card">
+					<h3 class="card-header">@book.Title</h3>
+					<div class="card-body">
+						<p>Image: @book.Image</p>
+						<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Group_Id">More info</a>
+					</div>
+				</div>
+			}
+		</div>
+	}
+	else
+	{
+		<h4>No results :(</h4>
+	}
+}
+@section Scripts{
+	<script>
+
+	</script>
+}

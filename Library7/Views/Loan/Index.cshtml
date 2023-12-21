@@ -1,0 +1,215 @@
+﻿@model IEnumerable<Library7.Models.Loan>
+
+@{
+	ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+	<a asp-action="Create">Create New</a>
+	<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#myModal">
+		Loan configuration
+	</button>
+</p>
+<table class="table" id="IndxTbl">
+	<thead>
+		<tr>
+			<th>
+				Id_Loan
+			</th>
+			<th>
+				Id_Book
+			</th>
+			<th>
+				Id_Member
+			</th>
+			<th>
+				LoanDate
+			</th>
+			<th>
+				DueDate
+			</th>
+			<th>
+				ReturnDate
+			</th>
+			<th>
+				Fine
+			</th>
+			<th>
+				Finished
+			</th>
+
+			<th></th>
+		</tr>
+	</thead>
+	
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title" id="myModalLabel">Modal Title</h4>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<form asp-action="EditLoanConfig">
+				<div class="modal-body">
+					<input type="hidden" name="Id" value="@ViewBag.Config.Id" />
+					<label for="Weekends">
+						Weekends (Saturday and Sunday)
+						<input name="Weekends" id="InputWeekends" type="checkbox" value="true" />
+					</label>
+					<label for="FineAmount">FineAmount</label>
+					<input name="FineAmount" type="number" value="@ViewBag.Config.FineAmount" />
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					<button type="submit" class="btn btn-primary">Save changes</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+@section Scripts{
+	<script>
+		var table = $('#IndxTbl').DataTable({
+			ajax: {
+				url: '@Url.Action("GetAll", "Loan")',
+				dataSrc: '',
+			},
+			columns: [
+				{ data: "id_Loan", autoWidth: true },
+				{ data: "id_Book", autoWidth: true },
+				{ data: "id_Member", autoWidth: true },
+				{ data: "loanDate", autoWidth: true },
+				{ data: "dueDate", autoWidth: true },
+				{ data: "returnDate", autoWidth: true },
+				{ data: "fine", autoWidth: true },
+				{ data: "finished", autoWidth: true },
+				{
+					data: "id_Loan",
+					render: function (data,type,row) {
+						var buttons = ``;
+						if (!row.finished) {
+							buttons += `<a class="btn btn-secondary" href="/Loan/Edit/${data}">Edit</a>
+									<a class="btn btn-info" href="/Loan/Details/${data}">Details</a>
+									<button class="btn-warning btn" onclick="getFine(${data})">Finish</button>`;
+						}else{
+							buttons += `<a class="btn btn-info" href="/Loan/Details/${data}">Details</a>`;
+						}
+						return buttons;
+					},
+					autoWidth: true
+				}
+			],
+			dom: 'Bfrtip',
+			buttons: [
+				'copy', 'excel', 'pdf'
+			]
+		});
+
+		table.buttons().container()
+			.appendTo($('.col-sm-6:eq(0)', table.table().container()));
+
+		//---- Modal Loan configuration -----------------
+		var WEvalue = ("@ViewBag.Config.Weekends").toLowerCase();
+		var checkbox = document.getElementById("InputWeekends");
+
+		if (WEvalue === "true") {
+			checkbox.checked = true;
+		}
+		$('#myModal').on('show.bs.modal', function () {
+			console.log('Modal shown');
+		});
+
+		function getFine(Id_Loan, ReturnDate) {
+			fetch('@Url.Action("ShowFineAmount","Loan")' + "?Id_Loan=" + Id_Loan)
+				.then(response => response.json())
+				.then(data => {
+					if (data[0].days && data[0].fine != 0) {
+						Swal.fire({
+							title: 'Are you sure to finish the loan?',
+							text: `Days late: ${data[0].days}  Fine: $${data[0].fine}`,
+							icon: 'question',
+							showCancelButton: true,
+							confirmButtonColor: '#3085d6',
+							cancelButtonColor: '#d33',
+							confirmButtonText: 'Confirm'
+						}).then((result) => {
+							if (result.isConfirmed) {
+								$.post("@Url.Action("FinishLoan","Loan")" + "?Id_Loan=" + Id_Loan);
+								Swal.fire(
+									'Finished!',
+									'The loan has been finished.',
+									'success'
+								)
+							}
+						})
+					}
+					else {
+						Swal.fire({
+							title: 'Are you sure to finish the loan?',
+							icon: 'question',
+							showCancelButton: true,
+							confirmButtonColor: '#3085d6',
+							cancelButtonColor: '#d33',
+							confirmButtonText: 'Confirm'
+						}).then((result) => {
+							if (result.isConfirmed) {
+								$.post("@Url.Action("FinishLoan","Loan")" + "?Id_Loan=" + Id_Loan);
+								Swal.fire(
+									'Finished!',
+									'The loan has been finished.',
+									'success'
+								)
+							}
+						})
+					}
+				}
+
+				)
+				.catch(error => console.error(error));
+		}
+
+		//-------------
+		// Signal R
+		let connection = new signalR.HubConnectionBuilder().withUrl("/signalrhub", {
+			skipNegotiation: true,
+			transport: signalR.HttpTransportType.WebSockets
+		}).build();
+
+		connection.start()
+			.then(function () {
+				console.log('connection started');
+			})
+			.catch(error => {
+				console.error(error.message);
+			});
+
+		connection.on(("LoanModConnection"), function () {
+			table.ajax.reload();
+			toastr.options = {
+				"closeButton": true,
+				"debug": false,
+				"newestOnTop": true,
+				"progressBar": true,
+				"positionClass": "toast-bottom-right",
+				"preventDuplicates": false,
+				"onclick": null,
+				"showDuration": "300",
+				"hideDuration": "1000",
+				"timeOut": "10000",
+				"extendedTimeOut": "5000",
+				"showEasing": "swing",
+				"hideEasing": "linear",
+				"showMethod": "fadeIn",
+				"hideMethod": "fadeOut"
+			}
+			toastr["info"]("", "New changes have been made");
+			console.log("New changes have been made");
+		});
+	</script>
+}
