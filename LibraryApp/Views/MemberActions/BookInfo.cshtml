@@ -1,0 +1,70 @@
+﻿@model LibraryApp.Models.Book
+
+@{
+	Layout = "~/Views/Shared/_LayoutMember.cshtml";
+	ViewData["Title"] = "Book Info";
+}
+
+<h1>Details</h1>
+
+<div>
+	<h4>@Html.DisplayFor(model => model.Title)</h4>
+	<hr />
+	<dl class="row">
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.Id_Book)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.Id_Book)
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.ISBN)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.ISBN)
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.Author)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.Author)
+		</dd>
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.Id_Section)
+		</dt>
+		<dd class="col-sm-10">
+			@Html.DisplayFor(model => model.Id_Section)
+		</dd>
+
+
+		<dt class="col-sm-2">
+			@Html.DisplayNameFor(model => model.Image)
+		</dt>
+		<dd class="col-sm-10">
+			<img src="~/booksImages/@Model.Image" width="90px" height="90px" />
+		</dd>
+	</dl>
+</div>
+<div>
+
+	<form asp-action="MakeSavedBook">
+		<input type="hidden" name="Group_Id" value="@Model.Group_Id" />
+		@if (ViewBag.isSaved == true)
+		{
+			<input type="submit" value="Save book" class="btn btn-outline-success" disabled />
+		}
+		else
+		{
+			<input type="submit" value="Save book" class="btn btn-outline-success" />
+		}
+	</form>
+	|
+	<a asp-action="Index">Back to List</a>
+</div>
+@section Scripts{
+	<script>
+		$(document).ready(function () {
+			
+		});
+	</script>
+}

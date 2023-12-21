@@ -1,0 +1,57 @@
+﻿html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    background-color: #FFF9E5 !important;
+}
+
+footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+.navbar {
+    background-color: #FFDD66 !important;
+    border-bottom: 2px solid black !important;
+}
+
+.navbar-nav li {
+    font-weight: 500;
+}
+
+.navbar-brand {
+    font-weight: 800;
+}
+
+.bookCard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.loansTable {
+    border: 1px solid;
+}
+
+    .loansTable thead {
+        background-color: #630000;
+        color: white;
+    }
+
+    .loansTable tbody {
+        background-color: White;
+    }

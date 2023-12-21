@@ -1,0 +1,66 @@
+﻿@using Microsoft.AspNetCore.Authentication
+@using System.Security.Claims
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>@ViewData["Title"] - Library App</title>
+	<link rel="stylesheet" type="text/css" href="~/css/memberStyles.css" />
+	<link rel="stylesheet" type="text/css" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="~/lib/DataTables/datatables.min.css" />
+	<link rel="stylesheet" type="text/css" href="~/lib/SweetAlert2/sweetalert2.min.css" />
+	<link rel="stylesheet" href="~/css/fontawesome-free-6.4.0/css/all.min.css" />
+</head>
+<body>
+	<header>
+		<nav class="navbar navbar-expand-md navbar-toggleable-md navbar-light sticky-top mb-3">
+			<div class="container-fluid">
+				<a class="navbar-brand" asp-area="" asp-controller="MemberActions" asp-action="Index">Library App</a>
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+						data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+						aria-expanded="false" aria-label="Toggle navigation">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+				<div class="navbar-collapse collapse justify-content-between" id="navbarSupportedContent">
+					<ul class="navbar-nav me-auto">
+						<li class="nav-item">
+							<a class="nav-link text-dark" asp-area="" asp-controller="MemberActions" asp-action="Index">Index</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link text-dark" asp-area="" asp-controller="MemberActions" asp-action="Loans">Loans</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link text-dark" asp-area="" asp-controller="MemberActions" asp-action="SavedBooks">Saved</a>
+						</li>
+
+					</ul>
+					<div class="nav-item" style="float:right;">
+						<a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="Logout"><b>Logout</b></a>
+					</div>
+				</div>
+			</div>
+		</nav>
+	</header>
+	<div class="container" style="margin-bottom:20px;">
+		<main role="main" class="pb-3">
+			@RenderBody()
+		</main>
+	</div>
+
+	<footer class="border-top text-muted">
+		<div class="container">
+			Roberto Hdz - Library App
+		</div>
+	</footer>
+	<script src="~/lib/jquery/dist/jquery.min.js"></script>
+	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="~/js/site.js" asp-append-version="true"></script>
+
+	<script type="text/javascript" src="~/lib/DataTables/datatables.min.js"></script>
+	@*<script src="~/lib/toastr/js/toastr.min.js"></script>*@
+	<script type="text/javascript" src="~/lib/SweetAlert2/sweetalert2.all.min.js"></script>
+	@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,40 @@
+﻿@model IEnumerable<LibraryApp.Models.ViewModels.SavedGroupViewModel>
+
+@{
+	Layout = "~/Views/Shared/_LayoutMember.cshtml";
+	ViewData["Title"] = "Saved books";
+}
+
+<h1>Saved books</h1>
+
+
+<table class="table savedTable">
+	<thead>
+		<tr>
+			<th>
+				@Html.DisplayNameFor(model => model.Title)
+			</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+		@foreach (var item in Model)
+		{
+			<tr>
+				<td>
+					@*<img src="~/booksImages/@item.Image" width="50px" height="50px" />*@
+					
+					<a href="@Url.Action("BookInfo","MemberActions",new{ id = item.Group_Id })">
+						@Html.DisplayFor(modelItem => item.Title)
+					</a>
+				</td>
+				<td>
+					<form asp-action="DeleteSavedBook">
+						<input name="Id_SavedGroup" type="hidden" value="@item.Id_SavedGroup">
+						<button type="submit" class="btn btn-outline-danger"><span class="fa-solid fa-trash-can"></span></button>
+					</form>
+				</td>
+			</tr>
+		}
+	</tbody>
+</table>

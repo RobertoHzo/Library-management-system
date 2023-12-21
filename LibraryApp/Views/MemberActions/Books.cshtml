@@ -1,0 +1,31 @@
+﻿@{
+	Layout = "~/Views/Shared/_LayoutMember.cshtml";
+}
+<form asp-action="Books" method="post">
+	<input type="text" name="searchData" value="@ViewBag.searchData" />
+	<input type="submit" value="Search" />
+	<a asp-action="Books" class="btn btn-close"></a>
+</form>
+
+<div id="MainDiv" class="row">
+	@if (ViewBag.Books.Count > 0)
+	{
+		@foreach (var book in ViewBag.Books)
+		{
+			<div class="col-md-4 col-sm-6">
+				<div class="card">
+					<h3 class="card-header">@book.Title</h3>
+					<div class="card-body">
+						<img src="~/booksImages/@book.Image" width="90px" height="90px" />
+						<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Group_Id">More info</a>
+					</div>
+				</div>
+			</div>
+		}
+	}
+	else
+	{
+		<h4>No results :(</h4>
+	}
+</div>
+

@@ -1,0 +1,29 @@
+﻿@model LibraryApp.Models.ViewModels.BooksBySectionViewModel
+@{
+	Layout = "~/Views/Shared/_LayoutMember.cshtml";
+}
+
+<h1>@ViewBag.Section</h1>
+<div class="row">
+	@if (Model.Books is null || Model.Books.Count > 0)
+	{
+		foreach (var book in Model.Books)
+		{
+			<div class="col-md-4 col-sm-6">
+				<div class="card">
+					<h3 class="card-header">@book.Title</h3>
+					<div class="card-body">
+						<h5>Section: @book.Id_Section</h5>
+						<img src="~/booksImages/@book.Image" width="90px" height="90px" />
+						<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Group_Id">More info</a>
+					</div>
+				</div>
+			</div>
+		}
+	}
+	else
+	{
+		<h4>No results :(</h4>
+		<a href="@Url.Action("Index","MemberActions")">Go back home</a>
+	}
+</div>

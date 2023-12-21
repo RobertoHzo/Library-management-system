@@ -1,0 +1,34 @@
+﻿@using Microsoft.AspNetCore.Authentication
+@using System.Security.Claims
+@{
+	ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+	<h1 class="display-4">Welcome: @User.Identity.Name</h1>
+
+	<p>User ID: @ViewBag.User</p>
+
+
+	<h2>Recent Loans</h2>
+	@foreach (var loan in ViewBag.Loans)
+	{
+		<div class="col-md-4 col-sm-6">
+			<div class="card">
+				<h3 class="card-header">@loan.LoanDate</h3>
+				<div class="card-body">
+					<p>@loan.Id_Member</p>
+					<p>@loan.DueDate</p>
+				</div>
+			</div>
+		</div>
+	}
+
+
+</div>
+
+@section Scripts{
+	<script>
+		console.log('@ViewBag.User');
+	</script>
+}

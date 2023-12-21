@@ -1,0 +1,37 @@
+﻿@model LibraryApp.Models.ViewModels.IndexViewModel
+@{
+	Layout = "~/Views/Shared/_LayoutMember.cshtml";
+}
+@*<form asp-action="Books" method="post">
+	<input type="text" name="searchData" value="@ViewBag.searchData" placeholder="Search a title"/>
+	<input type="submit" value="Search" />
+	<a asp-action="Index" class="btn btn-close"></a>
+</form>*@
+
+<div id="SectionsDiv" style="margin-bottom:15px;margin-top:15px;">
+	<h2>Start from a section: </h2>
+	@foreach (var sec in Model.Sections)
+	{
+		<a class="btn btn-outline-secondary" href="@Url.Action("Section","MemberActions",new{id = sec.Id_Section})">@sec.Name</a>
+	}
+</div>
+<div id="MainDiv" class="row">
+	<h2>Discover new books <a href="@Url.Action("Books","MemberActions")" class="btn btn-outline-primary">See all</a></h2>
+	
+
+	@foreach (var book in Model.Books)
+	{
+		<div class=" col-md-4">
+			<div class="card bookCard">				
+				<div class="card-body">
+					@*<p>Image: @book.Image</p>*@
+					<img src="~/booksImages/@book.Image" width="90px" height="90px"/>
+					<h3>@book.Title</h3>
+					<p>@book.Author</p>
+					<a class="btn btn-primary" href="/MemberActions/BookInfo?id=@book.Group_Id">More info</a>
+				</div>
+			</div>
+		</div>
+	}
+</div>
+
